@@ -8,9 +8,11 @@ import com.truffleapp.truffle.data.Bill
 import com.truffleapp.truffle.data.Budget
 import com.truffleapp.truffle.data.Goal
 import com.truffleapp.truffle.data.BackupImportPreview
+import com.truffleapp.truffle.data.DEFAULT_LEDGER_CURRENCY
 import com.truffleapp.truffle.data.ImportBackupResult
 import com.truffleapp.truffle.data.LEDGER_BACKUP_SCHEMA_VERSION
 import com.truffleapp.truffle.data.LedgerData
+import com.truffleapp.truffle.data.normalizeLedgerCurrencyCode
 import com.truffleapp.truffle.data.Transaction
 import com.truffleapp.truffle.data.emptyLedgerData
 import com.truffleapp.truffle.data.ledgerWithDerivedBudgetsAndWeekly
@@ -39,7 +41,7 @@ class LedgerRepository(application: Application) {
 
     fun loadLedgerData(): LedgerData {
         val meta0 = dao.getMeta() ?: defaultMeta().also { dao.upsertMeta(it) }
-        val base  = buildBaseLedgerFromRows(meta0.userFirstName)
+        val base  = buildBaseLedgerFromRows(meta0)
             .rollUpTxTotals()
             .withSyncedNetWorth()
         val (rolled, newMeta) = applyNetWorthMonthRolloverPair(base, meta0)
@@ -55,8 +57,9 @@ class LedgerRepository(application: Application) {
         writeAll(
             ledger = final,
             meta   = newMeta.copy(
-                userFirstName = final.user.firstName,
-                hasOnboarded  = meta0.hasOnboarded,
+                userFirstName   = final.user.firstName,
+                hasOnboarded    = meta0.hasOnboarded,
+                displayCurrency = normalizeLedgerCurrencyCode(final.displayCurrency),
             ),
         )
         return final
@@ -64,8 +67,17 @@ class LedgerRepository(application: Application) {
 
     fun completeOnboarding(userFirstName: String, firstAccount: Account) {
         val prior = dao.getMeta() ?: defaultMeta()
-        val meta0 = prior.copy(userFirstName = userFirstName.trim(), hasOnboarded = true)
-        val ledger = emptyLedgerData(userFirstName.trim(), listOf(firstAccount))
+        val dc = normalizeLedgerCurrencyCode(firstAccount.currency)
+        val meta0 = prior.copy(
+            userFirstName    = userFirstName.trim(),
+            hasOnboarded     = true,
+            displayCurrency  = dc,
+        )
+        val ledger = emptyLedgerData(
+            userName        = userFirstName.trim(),
+            accounts        = listOf(firstAccount),
+            displayCurrency = dc,
+        )
             .rollUpTxTotals()
             .withSyncedNetWorth()
         val (rolled, newMeta) = applyNetWorthMonthRolloverPair(ledger, meta0)
@@ -73,14 +85,19 @@ class LedgerRepository(application: Application) {
         writeAll(
             ledger = final,
             meta   = newMeta.copy(
-                userFirstName = final.user.firstName,
-                hasOnboarded  = true,
+                userFirstName   = final.user.firstName,
+                hasOnboarded    = true,
+                displayCurrency = normalizeLedgerCurrencyCode(final.displayCurrency),
             ),
         )
     }
 
-    private fun buildBaseLedgerFromRows(userFirstName: String): LedgerData =
-        emptyLedgerData(userFirstName, dao.listAccounts().map { it.toDomain() }).copy(
+    private fun buildBaseLedgerFromRows(meta: AppMetaEntity): LedgerData =
+        emptyLedgerData(
+            userName        = meta.userFirstName,
+            accounts        = dao.listAccounts().map { it.toDomain() },
+            displayCurrency = normalizeLedgerCurrencyCode(meta.displayCurrency),
+        ).copy(
             transactions = dao.listTransactions().map { it.toDomain() },
             bills        = dao.listBills().map { it.toDomain() },
             goals        = dao.listGoals().map { it.toDomain() },
@@ -93,12 +110,13 @@ class LedgerRepository(application: Application) {
     }
 
     private fun defaultMeta() = AppMetaEntity(
-        id             = 1,
-        userFirstName  = "",
-        hasOnboarded   = false,
-        nwSnapYm       = null,
-        nwSnapNw       = null,
-        nwBaseline     = "0.0",
+        id              = 1,
+        userFirstName   = "",
+        hasOnboarded    = false,
+        nwSnapYm        = null,
+        nwSnapNw        = null,
+        nwBaseline      = "0.0",
+        displayCurrency = DEFAULT_LEDGER_CURRENCY,
     )
 
     private fun applyNetWorthMonthRolloverPair(
@@ -169,6 +187,7 @@ class LedgerRepository(application: Application) {
         root.put("nwSnapYm", meta.nwSnapYm ?: JSONObject.NULL)
         root.put("nwSnapNw", meta.nwSnapNw ?: JSONObject.NULL)
         root.put("nwBaseline", meta.nwBaseline ?: "0.0")
+        root.put("displayCurrency", meta.displayCurrency)
 
         root.put(
             "accounts",
@@ -263,6 +282,7 @@ class LedgerRepository(application: Application) {
         put("institution", a.institution)
         put("balance", a.balance)
         put("kind", a.kind)
+        put("currency", a.currency)
     }
 
     private fun transactionEntityToJson(t: TransactionEntity) = JSONObject().apply {
@@ -304,15 +324,18 @@ class LedgerRepository(application: Application) {
     }
 
     private fun parseBackupMetaFromRoot(root: JSONObject) = AppMetaEntity(
-        id             = 1,
-        userFirstName  = root.optString("userFirstName", ""),
-        hasOnboarded   = root.optBoolean("hasOnboarded", false),
-        nwSnapYm       = if (!root.has("nwSnapYm") || root.isNull("nwSnapYm")) null else root.getString("nwSnapYm"),
-        nwSnapNw       = if (!root.has("nwSnapNw") || root.isNull("nwSnapNw")) null else root.getString("nwSnapNw"),
-        nwBaseline     = when {
+        id              = 1,
+        userFirstName   = root.optString("userFirstName", ""),
+        hasOnboarded    = root.optBoolean("hasOnboarded", false),
+        nwSnapYm        = if (!root.has("nwSnapYm") || root.isNull("nwSnapYm")) null else root.getString("nwSnapYm"),
+        nwSnapNw        = if (!root.has("nwSnapNw") || root.isNull("nwSnapNw")) null else root.getString("nwSnapNw"),
+        nwBaseline      = when {
             !root.has("nwBaseline") || root.isNull("nwBaseline") -> "0.0"
             else -> root.optString("nwBaseline", "0.0")
         },
+        displayCurrency = normalizeLedgerCurrencyCode(
+            root.optString("displayCurrency", DEFAULT_LEDGER_CURRENCY),
+        ),
     )
 
     private fun migrateLegacyPrefsIfNeeded() {
@@ -328,12 +351,13 @@ class LedgerRepository(application: Application) {
         }
 
         val meta = AppMetaEntity(
-            id             = 1,
-            userFirstName  = prefs.getString("user_name", "") ?: "",
-            hasOnboarded   = prefs.getBoolean("has_onboarded", false),
-            nwSnapYm       = prefs.getString("nw_snap_ym", null),
-            nwSnapNw       = prefs.getString("nw_snap_nw", null),
-            nwBaseline     = prefs.getString("nw_baseline", null) ?: "0.0",
+            id              = 1,
+            userFirstName   = prefs.getString("user_name", "") ?: "",
+            hasOnboarded    = prefs.getBoolean("has_onboarded", false),
+            nwSnapYm        = prefs.getString("nw_snap_ym", null),
+            nwSnapNw        = prefs.getString("nw_snap_nw", null),
+            nwBaseline      = prefs.getString("nw_baseline", null) ?: "0.0",
+            displayCurrency = DEFAULT_LEDGER_CURRENCY,
         )
 
         dao.replaceAll(
@@ -369,6 +393,7 @@ private fun JSONObject.toAccountEntity(): AccountEntity {
         institution = optString("institution", ""),
         balance     = getDouble("balance"),
         kind        = kind,
+        currency    = normalizeLedgerCurrencyCode(optString("currency", DEFAULT_LEDGER_CURRENCY)),
     )
 }
 
@@ -464,6 +489,7 @@ private fun AccountEntity.toDomain() = Account(
     institution = institution,
     balance     = balance,
     kind        = AccountKind.valueOf(kind),
+    currency    = normalizeLedgerCurrencyCode(currency),
 )
 
 private fun Account.toEntity() = AccountEntity(
@@ -472,6 +498,7 @@ private fun Account.toEntity() = AccountEntity(
     institution = institution,
     balance     = balance,
     kind        = kind.name,
+    currency    = normalizeLedgerCurrencyCode(currency),
 )
 
 private fun TransactionEntity.toDomain() = Transaction(

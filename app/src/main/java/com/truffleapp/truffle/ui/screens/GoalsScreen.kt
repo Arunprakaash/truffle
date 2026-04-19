@@ -28,6 +28,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -101,7 +102,11 @@ fun GoalsScreen(
             )
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 data.goals.forEach { goal ->
-                    GoalCard(goal = goal, onAdd = { onAddToGoal(goal) })
+                    GoalCard(
+                        goal = goal,
+                        displayCurrency = data.displayCurrency,
+                        onAdd = { onAddToGoal(goal) },
+                    )
                 }
             }
         }
@@ -134,7 +139,7 @@ private fun GoalsEmptyHintCard() {
 //   middle row   saved $22sp  "of $target" 13sp tertiary  |  Add pill button (ink bg)
 //   bottom       ProgressBar 2dp
 @Composable
-private fun GoalCard(goal: Goal, onAdd: () -> Unit) {
+private fun GoalCard(goal: Goal, displayCurrency: String, onAdd: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -183,7 +188,11 @@ private fun GoalCard(goal: Goal, onAdd: () -> Unit) {
         ) {
             // "$38,200 of $80,000"
             Row(verticalAlignment = Alignment.Bottom) {
-                MoneyText(amount = goal.saved, size = 22.sp)
+                MoneyText(
+                    amount = goal.saved,
+                    currencyCode = displayCurrency,
+                    size = 22.sp,
+                )
                 Text(
                     text  = buildAnnotatedString {
                         withStyle(SpanStyle(fontFamily = SerifFamily)) {
@@ -192,10 +201,11 @@ private fun GoalCard(goal: Goal, onAdd: () -> Unit) {
                         withStyle(
                             SpanStyle(
                                 fontFamily          = SerifFamily,
+                                fontWeight          = FontWeight.SemiBold,
                                 fontFeatureSettings = "\"tnum\" on",
                             )
                         ) {
-                            append(fmt(goal.target))
+                            append(fmt(goal.target, currencyCode = displayCurrency))
                         }
                     },
                     style = TextStyle(fontSize = 13.sp, color = ColorTextSerifMuted),

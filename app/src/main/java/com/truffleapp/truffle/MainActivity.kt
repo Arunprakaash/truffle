@@ -39,12 +39,14 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truffleapp.truffle.data.Account
+import com.truffleapp.truffle.data.AccountKind
 import com.truffleapp.truffle.data.Bill
 import com.truffleapp.truffle.data.Goal
 import com.truffleapp.truffle.data.BackupImportPreview
 import com.truffleapp.truffle.data.ImportBackupResult
 import com.truffleapp.truffle.data.LEDGER_BACKUP_SCHEMA_VERSION
 import com.truffleapp.truffle.data.Transaction
+import com.truffleapp.truffle.data.currencyForAccountName
 import com.truffleapp.truffle.navigation.NavDestination
 import com.truffleapp.truffle.ui.components.AddToGoalSheet
 import com.truffleapp.truffle.ui.components.AddTransactionSheet
@@ -178,11 +180,12 @@ private fun LedgerApp() {
                 onAdd  = { showAddPicker = true },
             )
             NavDestination.Accounts -> AccountsScreen(
-                data                   = data,
-                onEditAccount          = { accountToEdit = it },
-                onExportBackup         = { shareLedgerBackup(appContext, viewModel.exportBackupJson()) },
-                onImportBackup         = { importBackupLauncher.launch("*/*") },
-                onRequestClearAllData = { showClearAllConfirm = true },
+                data                    = data,
+                onEditAccount           = { accountToEdit = it },
+                onExportBackup          = { shareLedgerBackup(appContext, viewModel.exportBackupJson()) },
+                onImportBackup          = { importBackupLauncher.launch("*/*") },
+                onRequestClearAllData   = { showClearAllConfirm = true },
+                onDisplayCurrencyChange = { viewModel.setDisplayCurrency(it) },
             )
             NavDestination.Flow     -> FlowScreen(data = data, onTx = { selectedTx = it })
             NavDestination.Goals    -> GoalsScreen(data = data, onAddToGoal = { selectedGoal = it })
@@ -202,6 +205,7 @@ private fun LedgerApp() {
     selectedTx?.let { tx ->
         TxDetailSheet(
             tx = tx,
+            currencyCode = data.currencyForAccountName(tx.account),
             onDismiss = { selectedTx = null },
             onRecategorize = { txId, cat -> viewModel.recategorize(txId, cat) },
             onRemove = { txId ->
@@ -214,6 +218,7 @@ private fun LedgerApp() {
     selectedBill?.let { bill ->
         BillSheet(
             bill = bill,
+            currencyCode = data.currencyForAccountName(bill.account),
             onDismiss = { selectedBill = null },
             onMarkPaid = { billId ->
                 viewModel.markBillPaid(billId)
@@ -223,8 +228,13 @@ private fun LedgerApp() {
     }
 
     selectedGoal?.let { goal ->
+        val fromAccountLabel = data.accounts.firstOrNull { it.kind == AccountKind.Cash }?.name
+            ?: data.accounts.firstOrNull()?.name
+            ?: "your accounts"
         AddToGoalSheet(
             goal = goal,
+            displayCurrency = data.displayCurrency,
+            fromAccountLabel = fromAccountLabel,
             onDismiss = { selectedGoal = null },
             onConfirm = { goalId, amount ->
                 viewModel.addToGoal(goalId, amount)
@@ -247,8 +257,9 @@ private fun LedgerApp() {
 
     if (showAddTransaction) {
         AddTransactionSheet(
-            accounts  = data.accounts,
-            onDismiss = { showAddTransaction = false },
+            accounts         = data.accounts,
+            displayCurrency  = data.displayCurrency,
+            onDismiss        = { showAddTransaction = false },
             onAdd     = { tx ->
                 viewModel.addTransaction(tx)
                 showAddTransaction = false
@@ -279,6 +290,7 @@ private fun LedgerApp() {
 
     if (showAddAccount) {
         NewAccountSheet(
+            defaultAccountCurrency = data.displayCurrency,
             onDismiss = { showAddAccount = false },
             onAdd     = { account ->
                 viewModel.addAccount(account)

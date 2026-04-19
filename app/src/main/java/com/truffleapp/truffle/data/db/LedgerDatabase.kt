@@ -17,7 +17,7 @@ import java.time.LocalDate
         GoalEntity::class,
         BudgetEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 abstract class LedgerDatabase : RoomDatabase() {
@@ -36,7 +36,7 @@ abstract class LedgerDatabase : RoomDatabase() {
                     "truffle_ledger.db",
                 )
                     .allowMainThreadQueries()
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build()
                     .also { instance = it }
             }
@@ -76,6 +76,17 @@ abstract class LedgerDatabase : RoomDatabase() {
                 }
                 db.execSQL("DROP TABLE bills")
                 db.execSQL("ALTER TABLE bills_new RENAME TO bills")
+            }
+        }
+
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE app_meta ADD COLUMN display_currency TEXT NOT NULL DEFAULT 'USD'",
+                )
+                db.execSQL(
+                    "ALTER TABLE accounts ADD COLUMN currency TEXT NOT NULL DEFAULT 'USD'",
+                )
             }
         }
     }

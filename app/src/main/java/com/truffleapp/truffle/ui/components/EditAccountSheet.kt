@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import com.truffleapp.truffle.data.Account
 import com.truffleapp.truffle.data.AccountKind
 import com.truffleapp.truffle.data.UNASSIGNED_ACCOUNT_LABEL
+import com.truffleapp.truffle.data.normalizeLedgerCurrencyCode
 import com.truffleapp.truffle.ui.theme.ColorBorderTertiary
 import com.truffleapp.truffle.ui.theme.ColorFeature2
 import com.truffleapp.truffle.ui.theme.ColorInk
@@ -68,6 +69,7 @@ fun EditAccountSheet(
     var name         by remember(account.id) { mutableStateOf(account.name) }
     var institution  by remember(account.id) { mutableStateOf(account.institution) }
     var selectedKind by remember(account.id) { mutableStateOf(account.kind) }
+    var currencyCode by remember(account.id) { mutableStateOf(normalizeLedgerCurrencyCode(account.currency)) }
     var balanceText  by remember(account.id) { mutableStateOf(balanceToField(account.balance)) }
     var showDeleteConfirm by remember(account.id) { mutableStateOf(false) }
 
@@ -164,6 +166,15 @@ fun EditAccountSheet(
 
             Spacer(Modifier.height(16.dp))
 
+            CurrencySelector(
+                selectedCode = currencyCode,
+                onSelect = { currencyCode = normalizeLedgerCurrencyCode(it) },
+                label = "Currency",
+                modifier = Modifier.padding(bottom = 4.dp),
+            )
+
+            Spacer(Modifier.height(8.dp))
+
             FormField(label = "Balance") {
                 FormTextField(
                     value = balanceText,
@@ -187,6 +198,7 @@ fun EditAccountSheet(
                             institution = institution.trim(),
                             balance     = balance,
                             kind        = selectedKind,
+                            currency    = currencyCode,
                         ),
                     )
                 },

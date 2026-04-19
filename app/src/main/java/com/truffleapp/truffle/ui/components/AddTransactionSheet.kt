@@ -55,8 +55,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truffleapp.truffle.data.Account
 import com.truffleapp.truffle.data.CATEGORIES
+import com.truffleapp.truffle.data.DEFAULT_LEDGER_CURRENCY
 import com.truffleapp.truffle.data.RECATEGORIZABLE
 import com.truffleapp.truffle.data.Transaction
+import com.truffleapp.truffle.data.ledgerCurrencySymbol
+import com.truffleapp.truffle.data.normalizeLedgerCurrencyCode
 import com.truffleapp.truffle.ui.theme.ColorBorderTertiary
 import com.truffleapp.truffle.ui.theme.ColorFeature2
 import com.truffleapp.truffle.ui.theme.ColorInk
@@ -78,6 +81,7 @@ private val PillShape = RoundedCornerShape(999.dp)
 @Composable
 fun AddTransactionSheet(
     accounts: List<Account>,
+    displayCurrency: String = DEFAULT_LEDGER_CURRENCY,
     onDismiss: () -> Unit,
     onAdd: (Transaction) -> Unit,
 ) {
@@ -91,6 +95,12 @@ fun AddTransactionSheet(
     var note             by remember { mutableStateOf("") }
     var accountIdx       by remember { mutableIntStateOf(0) }
     var showCategoryPicker by remember { mutableStateOf(false) }
+
+    val ledgerDc = normalizeLedgerCurrencyCode(displayCurrency)
+    val amountRowCurrency = remember(ledgerDc, accountIdx, accounts) {
+        if (accounts.isEmpty()) ledgerDc
+        else normalizeLedgerCurrencyCode(accounts[accountIdx % accounts.size].currency)
+    }
 
     val canSubmit = (amountText.toDoubleOrNull() ?: 0.0) > 0 && merchant.isNotBlank()
 
@@ -172,7 +182,7 @@ fun AddTransactionSheet(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "$",
+                    text = ledgerCurrencySymbol(amountRowCurrency),
                     style = TextStyle(
                         fontFamily = SerifFamily,
                         fontSize = 48.sp,

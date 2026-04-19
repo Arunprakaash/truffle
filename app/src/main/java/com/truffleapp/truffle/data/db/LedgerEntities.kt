@@ -1,5 +1,6 @@
 package com.truffleapp.truffle.data.db
 
+import com.truffleapp.truffle.data.DEFAULT_LEDGER_CURRENCY
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -12,6 +13,8 @@ data class AppMetaEntity(
     @ColumnInfo(name = "nw_snap_ym") val nwSnapYm: String?,
     @ColumnInfo(name = "nw_snap_nw") val nwSnapNw: String?,
     @ColumnInfo(name = "nw_baseline") val nwBaseline: String?,
+    /** ISO 4217 — goals, budgets, and header totals. */
+    @ColumnInfo(name = "display_currency") val displayCurrency: String = DEFAULT_LEDGER_CURRENCY,
 )
 
 @Entity(tableName = "accounts")
@@ -21,6 +24,8 @@ data class AccountEntity(
     val institution: String,
     val balance: Double,
     val kind: String,
+    /** ISO 4217 */
+    val currency: String = DEFAULT_LEDGER_CURRENCY,
 )
 
 @Entity(tableName = "transactions")

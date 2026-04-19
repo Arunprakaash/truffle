@@ -47,7 +47,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truffleapp.truffle.data.Account
 import com.truffleapp.truffle.data.AccountKind
+import com.truffleapp.truffle.data.DEFAULT_LEDGER_CURRENCY
+import com.truffleapp.truffle.data.normalizeLedgerCurrencyCode
 import com.truffleapp.truffle.ui.components.Caps
+import com.truffleapp.truffle.ui.components.CurrencySelector
 import com.truffleapp.truffle.ui.components.Hairline
 import com.truffleapp.truffle.ui.theme.ColorFeature2
 import com.truffleapp.truffle.ui.theme.ColorInk
@@ -200,6 +203,7 @@ private fun AccountStep(
 ) {
     var accountName by remember { mutableStateOf("") }
     var selectedKind by remember { mutableStateOf(AccountKind.Cash) }
+    var currencyCode by remember { mutableStateOf(DEFAULT_LEDGER_CURRENCY) }
     val canSubmit = accountName.isNotBlank()
 
     Column(
@@ -279,7 +283,7 @@ private fun AccountStep(
             ),
             keyboardActions = KeyboardActions(
                 onDone = {
-                    if (canSubmit) onComplete(buildAccount(accountName, selectedKind))
+                    if (canSubmit) onComplete(buildAccount(accountName, selectedKind, currencyCode))
                 },
             ),
             decorationBox = { innerTextField ->
@@ -342,10 +346,18 @@ private fun AccountStep(
             }
         }
 
+        Spacer(Modifier.height(24.dp))
+
+        CurrencySelector(
+            selectedCode = currencyCode,
+            onSelect = { currencyCode = normalizeLedgerCurrencyCode(it) },
+            label = "Account currency",
+        )
+
         Spacer(Modifier.weight(1f))
 
         Button(
-            onClick  = { if (canSubmit) onComplete(buildAccount(accountName, selectedKind)) },
+            onClick  = { if (canSubmit) onComplete(buildAccount(accountName, selectedKind, currencyCode)) },
             enabled  = canSubmit,
             modifier = Modifier.fillMaxWidth(),
             shape    = RoundedCornerShape(8.dp),
@@ -362,10 +374,11 @@ private fun AccountStep(
     }
 }
 
-private fun buildAccount(name: String, kind: AccountKind) = Account(
+private fun buildAccount(name: String, kind: AccountKind, currency: String) = Account(
     id          = UUID.randomUUID().toString(),
     name        = name.trim(),
     institution = "",
     balance     = 0.0,
     kind        = kind,
+    currency    = normalizeLedgerCurrencyCode(currency),
 )

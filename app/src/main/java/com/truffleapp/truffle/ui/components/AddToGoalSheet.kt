@@ -34,6 +34,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truffleapp.truffle.data.Goal
+import com.truffleapp.truffle.data.formatLedgerMoney
+import com.truffleapp.truffle.data.normalizeLedgerCurrencyCode
 import com.truffleapp.truffle.ui.theme.ColorBorderTertiary
 import com.truffleapp.truffle.ui.theme.ColorFeature2
 import com.truffleapp.truffle.ui.theme.ColorInk
@@ -46,6 +48,8 @@ import com.truffleapp.truffle.ui.theme.SerifFamily
 @Composable
 fun AddToGoalSheet(
     goal: Goal,
+    displayCurrency: String,
+    fromAccountLabel: String,
     onDismiss: () -> Unit,
     onConfirm: (goalId: String, amount: Double) -> Unit,
 ) {
@@ -53,6 +57,7 @@ fun AddToGoalSheet(
     // Slider range: 10–1000, step 10 → use float state, snap to nearest 10
     var sliderValue by remember { mutableFloatStateOf(100f) }
     val amount = (sliderValue / 10).toInt() * 10  // snap to nearest 10
+    val dc = normalizeLedgerCurrencyCode(displayCurrency)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -110,7 +115,7 @@ fun AddToGoalSheet(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    text = "$$amount",
+                    text = formatLedgerMoney(amount.toDouble(), dc, cents = false),
                     style = TextStyle(
                         fontFamily = SerifFamily,
                         fontSize = 54.sp,
@@ -120,7 +125,7 @@ fun AddToGoalSheet(
                     ),
                 )
                 Text(
-                    text = "from Checking",
+                    text = "from $fromAccountLabel",
                     style = TextStyle(
                         fontFamily = SerifFamily,
                         fontStyle = FontStyle.Italic,
@@ -157,7 +162,7 @@ fun AddToGoalSheet(
                 listOf(50, 100, 250, 500).forEach { preset ->
                     val isActive = amount == preset
                     Text(
-                        text = "$$preset",
+                        text = formatLedgerMoney(preset.toDouble(), dc, cents = false),
                         style = TextStyle(
                             fontFamily = SerifFamily,
                             fontSize = 12.sp,

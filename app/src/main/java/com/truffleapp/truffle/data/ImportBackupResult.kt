@@ -1,7 +1,7 @@
 package com.truffleapp.truffle.data
 
 /** Current JSON backup format written by [com.truffleapp.truffle.data.db.LedgerRepository.exportBackupJson]. */
-const val LEDGER_BACKUP_SCHEMA_VERSION = 1
+const val LEDGER_BACKUP_SCHEMA_VERSION = 2
 
 data class BackupImportPreview(
     val schema: Int,

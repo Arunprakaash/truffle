@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truffleapp.truffle.data.Account
 import com.truffleapp.truffle.data.AccountKind
+import com.truffleapp.truffle.data.DEFAULT_LEDGER_CURRENCY
+import com.truffleapp.truffle.data.normalizeLedgerCurrencyCode
 import com.truffleapp.truffle.ui.theme.ColorBorderTertiary
 import com.truffleapp.truffle.ui.theme.ColorFeature2
 import com.truffleapp.truffle.ui.theme.ColorInk
@@ -51,6 +53,7 @@ private val PillShape = RoundedCornerShape(999.dp)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewAccountSheet(
+    defaultAccountCurrency: String = DEFAULT_LEDGER_CURRENCY,
     onDismiss: () -> Unit,
     onAdd: (Account) -> Unit,
 ) {
@@ -59,6 +62,7 @@ fun NewAccountSheet(
     var name         by remember { mutableStateOf("") }
     var institution  by remember { mutableStateOf("") }
     var selectedKind by remember { mutableStateOf(AccountKind.Cash) }
+    var currencyCode by remember { mutableStateOf(normalizeLedgerCurrencyCode(defaultAccountCurrency)) }
     var balanceText  by remember { mutableStateOf("") }
 
     val canSubmit = name.isNotBlank()
@@ -154,6 +158,15 @@ fun NewAccountSheet(
 
             Spacer(Modifier.height(16.dp))
 
+            CurrencySelector(
+                selectedCode = currencyCode,
+                onSelect = { currencyCode = normalizeLedgerCurrencyCode(it) },
+                label = "Currency",
+                modifier = Modifier.padding(bottom = 4.dp),
+            )
+
+            Spacer(Modifier.height(8.dp))
+
             FormField(label = "Starting balance") {
                 FormTextField(
                     value = balanceText,
@@ -178,6 +191,7 @@ fun NewAccountSheet(
                             institution  = institution.trim(),
                             balance      = balance,
                             kind         = selectedKind,
+                            currency     = currencyCode,
                         ),
                     )
                 },

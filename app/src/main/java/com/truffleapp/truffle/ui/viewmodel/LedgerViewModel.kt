@@ -12,6 +12,7 @@ import com.truffleapp.truffle.data.BackupImportPreview
 import com.truffleapp.truffle.data.ImportBackupResult
 import com.truffleapp.truffle.data.Transaction
 import com.truffleapp.truffle.data.UNASSIGNED_ACCOUNT_LABEL
+import com.truffleapp.truffle.data.normalizeLedgerCurrencyCode
 import com.truffleapp.truffle.data.db.LedgerRepository
 
 class LedgerViewModel(application: Application) : AndroidViewModel(application) {
@@ -30,6 +31,10 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
         repo.completeOnboarding(name, account)
         hasOnboarded = true
         data         = repo.loadLedgerData()
+    }
+
+    fun setDisplayCurrency(code: String) {
+        data = repo.persist(data.copy(displayCurrency = normalizeLedgerCurrencyCode(code)))
     }
 
     fun addAccount(account: Account) {

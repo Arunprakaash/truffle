@@ -57,6 +57,7 @@ fun AccountsScreen(
     onExportBackup: () -> Unit = {},
     onImportBackup: () -> Unit = {},
     onRequestClearAllData: () -> Unit = {},
+    onDisplayCurrencyChange: (String) -> Unit = {},
 ) {
     val cash    = remember(data) { data.accounts.filter { it.kind == AccountKind.Cash } }
     val invest  = remember(data) { data.accounts.filter { it.kind == AccountKind.Invest } }
@@ -101,16 +102,22 @@ fun AccountsScreen(
 
             if (showBackupSheet) {
                 AccountBackupSheet(
-                    onDismiss         = { showBackupSheet = false },
-                    onImport          = onImportBackup,
-                    onExport          = onExportBackup,
-                    onRequestClearAll = onRequestClearAllData,
+                    displayCurrency         = data.displayCurrency,
+                    onDisplayCurrencyChange = onDisplayCurrencyChange,
+                    onDismiss               = { showBackupSheet = false },
+                    onImport                = onImportBackup,
+                    onExport                = onExportBackup,
+                    onRequestClearAll       = onRequestClearAllData,
                 )
             }
 
             Spacer(Modifier.height(10.dp))
 
-            MoneyText(amount = data.netWorth, size = 36.sp)
+            MoneyText(
+                amount = data.netWorth,
+                currencyCode = data.displayCurrency,
+                size = 36.sp,
+            )
 
             Text(
                 text = "Across ${data.accounts.size} accounts, " +
@@ -138,22 +145,25 @@ fun AccountsScreen(
 
         // ── Account groups ────────────────────────────────────────────────
         AccountGroup(
-            title     = "Cash",
-            total     = cashTotal,
-            accounts  = cash,
-            onEdit    = onEditAccount,
+            title           = "Cash",
+            total           = cashTotal,
+            displayCurrency = data.displayCurrency,
+            accounts        = cash,
+            onEdit          = onEditAccount,
         )
         AccountGroup(
-            title     = "Investments",
-            total     = investTotal,
-            accounts  = invest,
-            onEdit    = onEditAccount,
+            title           = "Investments",
+            total           = investTotal,
+            displayCurrency = data.displayCurrency,
+            accounts        = invest,
+            onEdit          = onEditAccount,
         )
         AccountGroup(
-            title     = "Credit",
-            total     = creditTotal,
-            accounts  = credit,
-            onEdit    = onEditAccount,
+            title           = "Credit",
+            total           = creditTotal,
+            displayCurrency = data.displayCurrency,
+            accounts        = credit,
+            onEdit          = onEditAccount,
         )
     }
 }
@@ -164,6 +174,7 @@ fun AccountsScreen(
 private fun AccountGroup(
     title: String,
     total: Double,
+    displayCurrency: String,
     accounts: List<Account>,
     onEdit: (Account) -> Unit,
 ) {
@@ -181,6 +192,7 @@ private fun AccountGroup(
             Caps(text = title, modifier = Modifier.weight(1f))
             MoneyText(
                 amount = total,
+                currencyCode = displayCurrency,
                 size   = 14.sp,
                 color  = ColorTextSecondary,
             )

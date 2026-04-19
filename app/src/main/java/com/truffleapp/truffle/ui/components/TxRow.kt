@@ -19,6 +19,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.truffleapp.truffle.data.DEFAULT_LEDGER_CURRENCY
 import com.truffleapp.truffle.data.SampleData
 import com.truffleapp.truffle.data.Transaction
 import com.truffleapp.truffle.ui.theme.ColorInk
@@ -43,6 +44,7 @@ import com.truffleapp.truffle.ui.theme.StillwaterTheme
 fun TxRow(
     tx: Transaction,
     modifier: Modifier = Modifier,
+    currencyCode: String = DEFAULT_LEDGER_CURRENCY,
     isLast: Boolean = false,
     onClick: () -> Unit = {},
 ) {
@@ -96,6 +98,7 @@ fun TxRow(
             Column(horizontalAlignment = Alignment.End) {
                 MoneyText(
                     amount = tx.amount,
+                    currencyCode = currencyCode,
                     size = 15.sp,
                     cents = true,
                     sign = true,

@@ -15,6 +15,7 @@ val SampleData = LedgerData(
     netWorthLastMonth = 179_885.0,
     inflow            = 7_820.0,
     outflow           = 3_462.0,
+    displayCurrency   = DEFAULT_LEDGER_CURRENCY,
 
     accounts = listOf(
         Account("chk", "Checking",    "First Federal",  8_340.12,   AccountKind.Cash),

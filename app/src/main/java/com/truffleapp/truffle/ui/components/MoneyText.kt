@@ -9,36 +9,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
+import com.truffleapp.truffle.data.DEFAULT_LEDGER_CURRENCY
+import com.truffleapp.truffle.data.formatLedgerMoney
 import com.truffleapp.truffle.ui.theme.ColorInk
 import com.truffleapp.truffle.ui.theme.ColorTextSerifMuted
 import com.truffleapp.truffle.ui.theme.SerifFamily
-import java.text.NumberFormat
-import java.util.Locale
 
 // ── Formatting ────────────────────────────────────────────────────────────
-// Mirrors the reference `fmt()` function exactly:
-//   − No color for money (no green/red)
-//   − Uses '− ' (proper minus, U+2212) for outflows
-//   − Uses '+ ' prefix only when sign=true (detail views)
-//   − Thousands separator, optional cents
+// Device locale separators; ISO 4217 [currencyCode] via [formatLedgerMoney].
 
 fun fmt(
     amount: Double,
+    currencyCode: String = DEFAULT_LEDGER_CURRENCY,
     cents: Boolean = false,
     sign: Boolean = false,
-): String {
-    val abs = Math.abs(amount)
-    val nf = NumberFormat.getNumberInstance(Locale.US).apply {
-        minimumFractionDigits = if (cents) 2 else 0
-        maximumFractionDigits = if (cents) 2 else 0
-    }
-    val s = nf.format(abs)
-    return when {
-        sign   -> "${if (amount >= 0) "+ " else "\u2212 "}$$s"
-        amount < 0 -> "\u2212 $$s"
-        else   -> "$$s"
-    }
-}
+): String = formatLedgerMoney(amount, currencyCode, cents, sign)
 
 // ── MoneyText composable ──────────────────────────────────────────────────
 // Serif, tabular numerals, ink color by default.
@@ -48,17 +33,18 @@ fun fmt(
 fun MoneyText(
     amount: Double,
     modifier: Modifier = Modifier,
+    currencyCode: String = DEFAULT_LEDGER_CURRENCY,
     size: TextUnit = 28.sp,
     color: Color? = null,           // null = auto (ink or tertiary if dimmed)
     dimmed: Boolean = false,
     cents: Boolean = false,
     sign: Boolean = false,
-    weight: FontWeight = FontWeight.Normal,
+    weight: FontWeight = FontWeight.SemiBold,
     textAlign: TextAlign = TextAlign.Unspecified,
 ) {
     val resolvedColor = color ?: if (dimmed) ColorTextSerifMuted else ColorInk
     Text(
-        text = fmt(amount, cents = cents, sign = sign),
+        text = fmt(amount, currencyCode = currencyCode, cents = cents, sign = sign),
         modifier = modifier,
         textAlign = textAlign,
         style = TextStyle(

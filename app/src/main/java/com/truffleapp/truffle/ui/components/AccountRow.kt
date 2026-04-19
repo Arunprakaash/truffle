@@ -89,6 +89,7 @@ fun AccountRow(
             // Show cents when balance is under $100k — matches reference logic
             MoneyText(
                 amount = account.balance,
+                currencyCode = account.currency,
                 size = 15.sp,
                 cents = abs(account.balance) < 100_000,
             )

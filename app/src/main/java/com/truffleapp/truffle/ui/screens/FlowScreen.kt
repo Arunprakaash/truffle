@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import com.truffleapp.truffle.data.LedgerData
 import com.truffleapp.truffle.data.SampleData
 import com.truffleapp.truffle.data.Transaction
+import com.truffleapp.truffle.data.currencyForAccountName
 import com.truffleapp.truffle.ui.components.BottomNavContentPadding
 import com.truffleapp.truffle.ui.components.Caps
 import com.truffleapp.truffle.ui.components.MoneyText
@@ -128,7 +129,12 @@ fun FlowScreen(
             )
 
             // totalOut is negative — MoneyText will prefix with "− "
-            MoneyText(amount = totalOut, size = 32.sp)
+            MoneyText(
+                amount = totalOut,
+                currencyCode = data.displayCurrency,
+                size = 32.sp,
+                cents = true,
+            )
 
             Text(
                 text = buildAnnotatedString {
@@ -138,10 +144,11 @@ fun FlowScreen(
                     withStyle(
                         SpanStyle(
                             fontFamily         = SerifFamily,
+                            fontWeight         = FontWeight.SemiBold,
                             fontFeatureSettings = "\"tnum\" on",
                         )
                     ) {
-                        append(fmt(totalIn, cents = true))
+                        append(fmt(totalIn, currencyCode = data.displayCurrency, cents = true))
                     }
                 },
                 style    = TextStyle(fontSize = 12.sp, color = ColorTextSerifMuted),
@@ -195,7 +202,12 @@ fun FlowScreen(
                         .padding(horizontal = 4.dp, vertical = 4.dp),
                 ) {
                     items.forEachIndexed { i, tx ->
-                        TxRow(tx = tx, isLast = i == items.lastIndex, onClick = { onTx(tx) })
+                        TxRow(
+                            tx = tx,
+                            currencyCode = data.currencyForAccountName(tx.account),
+                            isLast = i == items.lastIndex,
+                            onClick = { onTx(tx) },
+                        )
                     }
                 }
             }

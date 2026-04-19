@@ -42,6 +42,7 @@ import com.truffleapp.truffle.data.ledgerWithDerivedBudgetsAndWeekly
 import com.truffleapp.truffle.data.pickReflection
 import com.truffleapp.truffle.data.Transaction
 import com.truffleapp.truffle.data.Bill
+import com.truffleapp.truffle.data.currencyForAccountName
 import com.truffleapp.truffle.data.WeeklyFlow
 import com.truffleapp.truffle.navigation.NavDestination
 import com.truffleapp.truffle.ui.components.BottomNavContentPadding
@@ -155,8 +156,9 @@ fun TodayScreen(
             ListCard(padding = 6) {
                 data.budgets.forEachIndexed { i, budget ->
                     BudgetTodayRow(
-                        budget = budget,
-                        isLast = i == data.budgets.lastIndex,
+                        budget          = budget,
+                        isLast          = i == data.budgets.lastIndex,
+                        displayCurrency = data.displayCurrency,
                     )
                 }
             }
@@ -174,7 +176,12 @@ fun TodayScreen(
                 EmptyListHint(text = "Nothing recent yet. Add a transaction when you are ready.")
             } else {
                 topTx.forEachIndexed { i, tx ->
-                    TxRow(tx = tx, isLast = i == topTx.lastIndex, onClick = { onTx(tx) })
+                    TxRow(
+                        tx            = tx,
+                        currencyCode  = data.currencyForAccountName(tx.account),
+                        isLast        = i == topTx.lastIndex,
+                        onClick       = { onTx(tx) },
+                    )
                 }
             }
         }
@@ -191,7 +198,12 @@ fun TodayScreen(
                 EmptyListHint(text = "No bills coming up. They will land here when you add them.")
             } else {
                 upcoming.forEachIndexed { i, bill ->
-                    BillRow(bill = bill, isLast = i == upcoming.lastIndex, onClick = { onBill(bill) })
+                    BillRow(
+                        bill          = bill,
+                        currencyCode  = data.currencyForAccountName(bill.account),
+                        isLast        = i == upcoming.lastIndex,
+                        onClick       = { onBill(bill) },
+                    )
                 }
             }
         }
@@ -199,7 +211,7 @@ fun TodayScreen(
 }
 
 // ── Greeting ──────────────────────────────────────────────────────────────
-// "GOOD MORNING · Sasha. · Saturday, April 19"
+// "Good morning, Sasha" — one 30sp serif line (same size as former name-only line) · date below
 @Composable
 private fun GreetingSection(
     firstName: String,
@@ -216,18 +228,15 @@ private fun GreetingSection(
     val date = remember {
         LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, MMMM d"))
     }
+    val name = firstName.trim().ifEmpty { "there" }
 
     Row(
         modifier = modifier.padding(bottom = 14.dp),
         verticalAlignment = Alignment.Top,
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Caps(text = greeting, color = ColorMuted)
-
-            Spacer(Modifier.height(8.dp))
-
             Text(
-                text = "$firstName.",
+                text = "$greeting, $name",
                 style = TextStyle(
                     fontFamily = SerifFamily,
                     fontSize = 30.sp,
@@ -293,7 +302,7 @@ private fun NetWorthCard(data: LedgerData) {
             modifier = Modifier.padding(bottom = 14.dp),
         )
 
-        MoneyText(amount = data.netWorth, size = 40.sp)
+        MoneyText(amount = data.netWorth, size = 40.sp, currencyCode = data.displayCurrency)
 
         val deltaLine = remember(data.netWorth, data.netWorthLastMonth, data.netWorthDelta) {
             when {
@@ -323,10 +332,11 @@ private fun NetWorthCard(data: LedgerData) {
                         withStyle(
                             SpanStyle(
                                 fontFamily = SerifFamily,
+                                fontWeight = FontWeight.SemiBold,
                                 fontFeatureSettings = "\"tnum\" on, \"lnum\" on",
                             )
                         ) {
-                            append(fmt(data.netWorthDelta, sign = true))
+                            append(fmt(data.netWorthDelta, currencyCode = data.displayCurrency, sign = true))
                         }
                     }
                 }
@@ -335,7 +345,10 @@ private fun NetWorthCard(data: LedgerData) {
 
         Text(
             text = deltaLine,
-            style = TextStyle(fontSize = 12.sp, color = ColorTextSerifBody),
+            style = TextStyle(
+                fontSize = 12.sp,
+                color = ColorTextSerifBody,
+            ),
             modifier = Modifier.padding(top = 10.dp),
         )
 
@@ -428,16 +441,18 @@ private fun ThisMonthSection(data: LedgerData, modifier: Modifier = Modifier) {
                     withStyle(
                         SpanStyle(
                             fontFamily = SerifFamily,
+                            fontWeight = FontWeight.SemiBold,
                             fontFeatureSettings = "\"tnum\" on",
                         )
-                    ) { append(fmt(data.inflow)) }
+                    ) { append(fmt(data.inflow, currencyCode = data.displayCurrency)) }
                     withStyle(SpanStyle(fontFamily = SansFamily)) { append(" and let ") }
                     withStyle(
                         SpanStyle(
                             fontFamily = SerifFamily,
+                            fontWeight = FontWeight.SemiBold,
                             fontFeatureSettings = "\"tnum\" on",
                         )
-                    ) { append(fmt(data.outflow)) }
+                    ) { append(fmt(data.outflow, currencyCode = data.displayCurrency)) }
                     withStyle(SpanStyle(fontFamily = SansFamily)) { append(" go. A pace that feels ") }
                     withStyle(SpanStyle(fontFamily = SerifFamily, fontStyle = FontStyle.Italic)) {
                         append("right")
@@ -494,7 +509,7 @@ private fun ColumnScope.EmptyListHint(text: String) {
 }
 
 @Composable
-private fun BudgetTodayRow(budget: Budget, isLast: Boolean) {
+private fun BudgetTodayRow(budget: Budget, isLast: Boolean, displayCurrency: String) {
     val ratio = if (budget.limit > 0.0) (budget.spent / budget.limit).toFloat() else 0f
     Column(
         modifier = Modifier
@@ -517,9 +532,10 @@ private fun BudgetTodayRow(budget: Budget, isLast: Boolean) {
                 modifier = Modifier.weight(1f).padding(end = 8.dp),
             )
             Text(
-                text  = "${fmt(budget.spent)} / ${fmt(budget.limit)}",
+                text  = "${fmt(budget.spent, currencyCode = displayCurrency)} / ${fmt(budget.limit, currencyCode = displayCurrency)}",
                 style = TextStyle(
                     fontFamily = SerifFamily,
+                    fontWeight = FontWeight.SemiBold,
                     fontSize   = 12.sp,
                     color      = ColorTextSerifMuted,
                 ),

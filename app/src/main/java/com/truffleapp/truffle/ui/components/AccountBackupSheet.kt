@@ -30,6 +30,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.truffleapp.truffle.data.normalizeLedgerCurrencyCode
 import com.truffleapp.truffle.ui.theme.ColorBorderTertiary
 import com.truffleapp.truffle.ui.theme.ColorFeature2
 import com.truffleapp.truffle.ui.theme.ColorInk
@@ -40,6 +41,8 @@ import com.truffleapp.truffle.ui.theme.SerifFamily
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountBackupSheet(
+    displayCurrency: String,
+    onDisplayCurrencyChange: (String) -> Unit,
     onDismiss: () -> Unit,
     onImport: () -> Unit,
     onExport: () -> Unit,
@@ -82,6 +85,13 @@ fun AccountBackupSheet(
                     fontSize   = 12.sp,
                     color      = ColorTextSerifMuted,
                 ),
+                modifier = Modifier.padding(bottom = 14.dp),
+            )
+
+            CurrencySelector(
+                selectedCode = normalizeLedgerCurrencyCode(displayCurrency),
+                onSelect = onDisplayCurrencyChange,
+                label = "Default display currency",
                 modifier = Modifier.padding(bottom = 14.dp),
             )
 

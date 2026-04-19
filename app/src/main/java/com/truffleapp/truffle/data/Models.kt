@@ -57,6 +57,8 @@ data class Account(
     val institution: String,
     val balance: Double,      // negative for credit balances owed
     val kind: AccountKind,
+    /** ISO 4217; amounts for this account are in this currency. */
+    val currency: String = DEFAULT_LEDGER_CURRENCY,
 )
 
 enum class AccountKind { Cash, Invest, Credit }
@@ -96,6 +98,8 @@ data class LedgerData(
     val netWorthLastMonth: Double,
     val inflow: Double,
     val outflow: Double,
+    /** ISO 4217 for goals, budgets, and aggregates that are not tied to a single account. */
+    val displayCurrency: String = DEFAULT_LEDGER_CURRENCY,
     val accounts: List<Account>,
     val transactions: List<Transaction>,
     val bills: List<Bill>,

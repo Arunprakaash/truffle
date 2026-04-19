@@ -35,6 +35,7 @@ import com.truffleapp.truffle.ui.theme.SerifFamily
 @Composable
 fun BillSheet(
     bill: Bill,
+    currencyCode: String,
     onDismiss: () -> Unit,
     onMarkPaid: (billId: String) -> Unit,
 ) {
@@ -82,7 +83,12 @@ fun BillSheet(
 
             Spacer(Modifier.height(14.dp))
 
-            MoneyText(amount = -bill.amount, size = 36.sp)
+            MoneyText(
+                amount = -bill.amount,
+                currencyCode = currencyCode,
+                size = 36.sp,
+                cents = true,
+            )
 
             Spacer(Modifier.height(8.dp))
 

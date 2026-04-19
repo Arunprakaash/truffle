@@ -61,6 +61,7 @@ import kotlin.math.abs
 @Composable
 fun TxDetailSheet(
     tx: Transaction,
+    currencyCode: String,
     onDismiss: () -> Unit,
     onRecategorize: (txId: String, category: String) -> Unit,
     onRemove: (txId: String) -> Unit = {},
@@ -140,7 +141,13 @@ fun TxDetailSheet(
             Spacer(Modifier.height(14.dp))
 
             // Amount
-            MoneyText(amount = tx.amount, size = 40.sp, sign = true)
+            MoneyText(
+                amount = tx.amount,
+                currencyCode = currencyCode,
+                size = 40.sp,
+                cents = true,
+                sign = true,
+            )
 
             Spacer(Modifier.height(10.dp))
 
@@ -242,7 +249,7 @@ fun TxDetailSheet(
             ) {
                 Caps(text = "A note", modifier = Modifier.padding(bottom = 8.dp))
                 val noteText = if (tx.amount < 0) {
-                    "You have spent ${fmt(abs(tx.amount), cents = true)} at ${tx.merchant} this month. Still within what you intended."
+                    "You have spent ${fmt(abs(tx.amount), currencyCode = currencyCode, cents = true)} at ${tx.merchant} this month. Still within what you intended."
                 } else {
                     "Received. The kind of arrival that asks nothing in return."
                 }

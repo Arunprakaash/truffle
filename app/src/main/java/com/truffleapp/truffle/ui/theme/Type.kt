@@ -19,6 +19,9 @@ val InterFamily: FontFamily = FontFamily(
 
 val CormorantFamily: FontFamily = FontFamily(
     Font(R.font.cormorant_garamond_regular, weight = FontWeight.Normal, style = FontStyle.Normal),
+    // Upright Medium/SemiBold — matches the visual weight of semibold italic used for reflections.
+    Font(R.font.cormorant_garamond_semibold, weight = FontWeight.Medium, style = FontStyle.Normal),
+    Font(R.font.cormorant_garamond_semibold, weight = FontWeight.SemiBold, style = FontStyle.Normal),
     // All italic uses the semibold cut — the regular italic is too light on warm backgrounds.
     Font(R.font.cormorant_garamond_semibold_italic, weight = FontWeight.Normal, style = FontStyle.Italic),
     Font(R.font.cormorant_garamond_semibold_italic, weight = FontWeight.Medium, style = FontStyle.Italic),

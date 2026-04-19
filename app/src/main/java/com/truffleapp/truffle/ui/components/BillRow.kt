@@ -20,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truffleapp.truffle.data.Bill
+import com.truffleapp.truffle.data.DEFAULT_LEDGER_CURRENCY
 import com.truffleapp.truffle.data.SampleData
 import com.truffleapp.truffle.ui.theme.ColorInk
 import com.truffleapp.truffle.ui.theme.ColorTextSerifBody
@@ -42,6 +43,7 @@ import com.truffleapp.truffle.ui.theme.StillwaterTheme
 fun BillRow(
     bill: Bill,
     modifier: Modifier = Modifier,
+    currencyCode: String = DEFAULT_LEDGER_CURRENCY,
     isLast: Boolean = false,
     onClick: () -> Unit = {},
 ) {
@@ -99,7 +101,9 @@ fun BillRow(
             // Amount — always an outflow so passed as negative
             MoneyText(
                 amount = -bill.amount,
+                currencyCode = currencyCode,
                 size = 15.sp,
+                cents = true,
                 color = ColorTextSerifBody,
             )
         }
