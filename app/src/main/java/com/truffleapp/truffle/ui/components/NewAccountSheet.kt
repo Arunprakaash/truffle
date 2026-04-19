@@ -64,6 +64,7 @@ fun NewAccountSheet(
     var selectedKind by remember { mutableStateOf(AccountKind.Cash) }
     var currencyCode by remember { mutableStateOf(normalizeLedgerCurrencyCode(defaultAccountCurrency)) }
     var balanceText  by remember { mutableStateOf("") }
+    var creditLimitText by remember { mutableStateOf("") }
 
     val canSubmit = name.isNotBlank()
 
@@ -179,11 +180,30 @@ fun NewAccountSheet(
                 )
             }
 
+            if (selectedKind == AccountKind.Credit) {
+                Spacer(Modifier.height(8.dp))
+                FormField(label = "Credit limit (0 = no cap)") {
+                    FormTextField(
+                        value = creditLimitText,
+                        onValueChange = { raw ->
+                            creditLimitText = raw.filter { ch -> ch.isDigit() || ch == '.' }
+                        },
+                        placeholder = "0",
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    )
+                }
+            }
+
             Spacer(Modifier.height(16.dp))
 
             Button(
                 onClick = {
                     val balance = balanceText.toDoubleOrNull() ?: 0.0
+                    val creditLimit = if (selectedKind == AccountKind.Credit) {
+                        creditLimitText.toDoubleOrNull()?.coerceAtLeast(0.0) ?: 0.0
+                    } else {
+                        0.0
+                    }
                     onAdd(
                         Account(
                             id           = UUID.randomUUID().toString(),
@@ -192,6 +212,7 @@ fun NewAccountSheet(
                             balance      = balance,
                             kind         = selectedKind,
                             currency     = currencyCode,
+                            creditLimit  = creditLimit,
                         ),
                     )
                 },

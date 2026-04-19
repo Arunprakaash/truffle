@@ -71,6 +71,16 @@ fun EditAccountSheet(
     var selectedKind by remember(account.id) { mutableStateOf(account.kind) }
     var currencyCode by remember(account.id) { mutableStateOf(normalizeLedgerCurrencyCode(account.currency)) }
     var balanceText  by remember(account.id) { mutableStateOf(balanceToField(account.balance)) }
+    var creditLimitText by remember(account.id) {
+        mutableStateOf(
+            if (account.creditLimit > 0) {
+                val t = account.creditLimit.toString()
+                if (t.endsWith(".0")) t.dropLast(2) else t
+            } else {
+                ""
+            },
+        )
+    }
     var showDeleteConfirm by remember(account.id) { mutableStateOf(false) }
 
     val canSubmit = name.isNotBlank()
@@ -187,18 +197,38 @@ fun EditAccountSheet(
                 )
             }
 
+            if (selectedKind == AccountKind.Credit) {
+                Spacer(Modifier.height(8.dp))
+                FormField(label = "Credit limit (0 = no cap)") {
+                    FormTextField(
+                        value = creditLimitText,
+                        onValueChange = { raw ->
+                            creditLimitText = raw.filter { ch -> ch.isDigit() || ch == '.' }
+                        },
+                        placeholder = "0",
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    )
+                }
+            }
+
             Spacer(Modifier.height(16.dp))
 
             Button(
                 onClick = {
                     val balance = balanceText.toDoubleOrNull() ?: 0.0
+                    val creditLimit = if (selectedKind == AccountKind.Credit) {
+                        creditLimitText.toDoubleOrNull()?.coerceAtLeast(0.0) ?: 0.0
+                    } else {
+                        0.0
+                    }
                     onSave(
                         account.copy(
-                            name        = name.trim(),
-                            institution = institution.trim(),
-                            balance     = balance,
-                            kind        = selectedKind,
-                            currency    = currencyCode,
+                            name         = name.trim(),
+                            institution  = institution.trim(),
+                            balance      = balance,
+                            kind         = selectedKind,
+                            currency     = currencyCode,
+                            creditLimit  = creditLimit,
                         ),
                     )
                 },

@@ -54,6 +54,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truffleapp.truffle.data.Account
+import com.truffleapp.truffle.data.AccountKind
+import com.truffleapp.truffle.data.canCoverExpense
 import com.truffleapp.truffle.data.CATEGORIES
 import com.truffleapp.truffle.data.DEFAULT_LEDGER_CURRENCY
 import com.truffleapp.truffle.data.RECATEGORIZABLE
@@ -101,7 +103,13 @@ fun AddTransactionSheet(
         accounts.getOrNull(accountIdx)?.let { normalizeLedgerCurrencyCode(it.currency) } ?: ledgerDc
     }
 
-    val canSubmit = (amountText.toDoubleOrNull() ?: 0.0) > 0 && merchant.isNotBlank()
+    val parsedAmount = amountText.toDoubleOrNull() ?: 0.0
+    val selectedAccount = accounts.getOrNull(accountIdx)
+    val hasFundsForExpense =
+        !isExpense ||
+            selectedAccount == null ||
+            selectedAccount.canCoverExpense(parsedAmount)
+    val canSubmit = parsedAmount > 0 && merchant.isNotBlank() && hasFundsForExpense
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
@@ -223,6 +231,28 @@ fun AddTransactionSheet(
                         }
                     },
                 )
+            }
+
+            if (isExpense && parsedAmount > 0 && !hasFundsForExpense) {
+                selectedAccount?.let { acc ->
+                    val hint = if (acc.kind == AccountKind.Credit && acc.creditLimit > 0) {
+                        "That would go past the credit limit you set for ${acc.name}."
+                    } else {
+                        "That is more than the balance in ${acc.name}."
+                    }
+                    Text(
+                        text = hint,
+                        style = TextStyle(
+                            fontFamily = SerifFamily,
+                            fontStyle = FontStyle.Italic,
+                            fontSize = 13.sp,
+                            color = ColorTextSerifMuted,
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                    )
+                }
             }
 
             // ── Merchant ──────────────────────────────────────────────────

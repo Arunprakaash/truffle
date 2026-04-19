@@ -22,6 +22,7 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -43,21 +44,75 @@ import com.truffleapp.truffle.ui.theme.ColorPage
 import com.truffleapp.truffle.ui.theme.ColorSurface
 import com.truffleapp.truffle.ui.theme.ColorTextSerifMuted
 import com.truffleapp.truffle.ui.theme.SerifFamily
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.round
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddToGoalSheet(
     goal: Goal,
-    displayCurrency: String,
+    /** ISO code for formatting the transfer amount (usually the source account’s currency). */
+    amountCurrencyCode: String,
     fromAccountLabel: String,
+    /** Spendable balance available to move (cash / invest; credit is treated as 0). */
+    maxFromAccount: Double,
+    fromAccountId: String,
     onDismiss: () -> Unit,
-    onConfirm: (goalId: String, amount: Double) -> Unit,
+    onConfirm: (goalId: String, amount: Double, fromAccountId: String) -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    // Slider range: 10–1000, step 10 → use float state, snap to nearest 10
-    var sliderValue by remember { mutableFloatStateOf(100f) }
-    val amount = (sliderValue / 10).toInt() * 10  // snap to nearest 10
-    val dc = normalizeLedgerCurrencyCode(displayCurrency)
+    val dc = normalizeLedgerCurrencyCode(amountCurrencyCode)
+    val maxV = maxFromAccount.coerceAtLeast(0.0)
+    val useTenStep = maxV >= 10.0
+    val minSlider = when {
+        maxV <= 0.0 -> 0f
+        useTenStep -> 10f
+        else -> 1f.coerceAtMost(maxV.toFloat())
+    }
+    val maxSlider = when {
+        maxV <= 0.0 -> 1f
+        useTenStep -> min(1000.0, maxV).toFloat().coerceAtLeast(minSlider)
+        else -> maxV.toFloat().coerceAtLeast(minSlider)
+    }
+
+    val initial = remember(goal.id, maxFromAccount, minSlider, maxSlider) {
+        when {
+            maxV <= 0.0 -> 0f
+            useTenStep -> {
+                val target = min(100f, max(minSlider, (maxV * 0.25).toFloat()))
+                (round(target / 10f) * 10f).coerceIn(minSlider, maxSlider)
+            }
+            else -> ((minSlider + maxSlider) / 2f).coerceIn(minSlider, maxSlider)
+        }
+    }
+    var sliderValue by remember(goal.id, maxFromAccount) { mutableFloatStateOf(initial) }
+
+    LaunchedEffect(minSlider, maxSlider) {
+        sliderValue = sliderValue.coerceIn(minSlider, maxSlider)
+    }
+
+    val amount = when {
+        maxV <= 0.0 -> 0.0
+        useTenStep -> sliderValue.toDouble().coerceIn(minSlider.toDouble(), maxSlider.toDouble())
+        else -> (round(sliderValue.toDouble() * 100.0) / 100.0).coerceIn(minSlider.toDouble(), maxSlider.toDouble())
+    }
+
+    val stepsTen = remember(minSlider, maxSlider, useTenStep) {
+        if (!useTenStep) 0
+        else (((maxSlider - minSlider) / 10f).toInt() - 1).coerceAtLeast(0)
+    }
+
+    val canTransfer =
+        fromAccountId.isNotBlank() && maxV > 0 && amount > 0 && amount <= maxV + 1e-6
+
+    val presets = remember(maxV, useTenStep, minSlider) {
+        if (useTenStep) {
+            listOf(50.0, 100.0, 250.0, 500.0).filter { it <= maxV + 1e-6 && it >= minSlider.toDouble() }
+        } else {
+            listOf(1.0, 2.0, 5.0).filter { it <= maxV + 1e-6 && it >= minSlider.toDouble() }
+        }
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -73,7 +128,6 @@ fun AddToGoalSheet(
                 .padding(top = 20.dp, bottom = 32.dp)
                 .navigationBarsPadding(),
         ) {
-            // drag handle
             Spacer(
                 modifier = Modifier
                     .width(36.dp)
@@ -107,83 +161,107 @@ fun AddToGoalSheet(
                 modifier = Modifier.padding(top = 4.dp),
             )
 
-            // Amount display — centered, large tabular serif
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text(
-                    text = formatLedgerMoney(amount.toDouble(), dc, cents = false),
-                    style = TextStyle(
-                        fontFamily = SerifFamily,
-                        fontSize = 54.sp,
-                        color = ColorInk,
-                        lineHeight = 54.sp,
-                        fontFeatureSettings = "\"tnum\" on",
-                    ),
-                )
-                Text(
-                    text = "from $fromAccountLabel",
-                    style = TextStyle(
-                        fontFamily = SerifFamily,
-                        fontStyle = FontStyle.Italic,
-                        fontSize = 13.sp,
-                        color = ColorTextSerifMuted,
-                    ),
-                    modifier = Modifier.padding(top = 6.dp),
-                )
-            }
-
-            // Slider
-            Slider(
-                value = sliderValue,
-                onValueChange = { sliderValue = it },
-                valueRange = 10f..1000f,
-                steps = 98,  // (1000-10)/10 - 1 = 98 steps for 10-unit increments
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 24.dp),
-                colors = SliderDefaults.colors(
-                    thumbColor = ColorInk,
-                    activeTrackColor = ColorInk,
-                    inactiveTrackColor = ColorSurface,
-                ),
-            )
-
-            // Quick-add pills
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 6.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                listOf(50, 100, 250, 500).forEach { preset ->
-                    val isActive = amount == preset
+                if (maxV <= 0.0) {
                     Text(
-                        text = formatLedgerMoney(preset.toDouble(), dc, cents = false),
+                        text = "No spendable balance in $fromAccountLabel right now.",
                         style = TextStyle(
                             fontFamily = SerifFamily,
-                            fontSize = 12.sp,
+                            fontStyle = FontStyle.Italic,
+                            fontSize = 15.sp,
+                            color = ColorTextSerifMuted,
+                        ),
+                    )
+                } else {
+                    Text(
+                        text = formatLedgerMoney(amount, dc, cents = !useTenStep),
+                        style = TextStyle(
+                            fontFamily = SerifFamily,
+                            fontSize = 54.sp,
                             color = ColorInk,
+                            lineHeight = 54.sp,
                             fontFeatureSettings = "\"tnum\" on",
                         ),
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(999.dp))
-                            .background(if (isActive) ColorFeature2 else ColorSurface)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                            ) { sliderValue = preset.toFloat() }
-                            .padding(horizontal = 14.dp, vertical = 6.dp),
+                    )
+                    Text(
+                        text = "from $fromAccountLabel · up to ${formatLedgerMoney(maxV, dc, cents = !useTenStep)} available",
+                        style = TextStyle(
+                            fontFamily = SerifFamily,
+                            fontStyle = FontStyle.Italic,
+                            fontSize = 13.sp,
+                            color = ColorTextSerifMuted,
+                        ),
+                        modifier = Modifier.padding(top = 6.dp),
                     )
                 }
             }
 
-            // Transfer button
+            if (maxV > 0.0) {
+                Slider(
+                    value = sliderValue.coerceIn(minSlider, maxSlider),
+                    onValueChange = { v ->
+                        sliderValue = if (useTenStep) {
+                            (round(v / 10f) * 10f).coerceIn(minSlider, maxSlider)
+                        } else {
+                            v.coerceIn(minSlider, maxSlider)
+                        }
+                    },
+                    valueRange = minSlider..maxSlider,
+                    steps = stepsTen,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 24.dp),
+                    colors = SliderDefaults.colors(
+                        thumbColor = ColorInk,
+                        activeTrackColor = ColorInk,
+                        inactiveTrackColor = ColorSurface,
+                    ),
+                )
+
+                if (presets.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 6.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        presets.forEach { preset ->
+                            val presetFloat = preset.toFloat()
+                            val active = if (useTenStep) {
+                                kotlin.math.abs(amount - preset) < 0.5
+                            } else {
+                                kotlin.math.abs(amount - preset) < 0.005
+                            }
+                            Text(
+                                text = formatLedgerMoney(preset, dc, cents = !useTenStep),
+                                style = TextStyle(
+                                    fontFamily = SerifFamily,
+                                    fontSize = 12.sp,
+                                    color = ColorInk,
+                                    fontFeatureSettings = "\"tnum\" on",
+                                ),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(999.dp))
+                                    .background(if (active) ColorFeature2 else ColorSurface)
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                    ) { sliderValue = presetFloat.coerceIn(minSlider, maxSlider) }
+                                    .padding(horizontal = 14.dp, vertical = 6.dp),
+                            )
+                        }
+                    }
+                }
+            }
+
             Button(
-                onClick = { onConfirm(goal.id, amount.toDouble()) },
+                onClick = { onConfirm(goal.id, amount, fromAccountId) },
+                enabled = canTransfer,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 22.dp),
@@ -191,10 +269,15 @@ fun AddToGoalSheet(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = ColorInk,
                     contentColor = ColorPage,
+                    disabledContainerColor = ColorSurface,
+                    disabledContentColor = ColorTextSerifMuted,
                 ),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 14.dp),
             ) {
-                Caps(text = "Transfer quietly", color = ColorPage)
+                Caps(
+                    text = "Transfer quietly",
+                    color = if (canTransfer) ColorPage else ColorTextSerifMuted,
+                )
             }
         }
     }

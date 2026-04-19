@@ -285,6 +285,7 @@ class LedgerRepository(application: Application) {
         put("balance", a.balance)
         put("kind", a.kind)
         put("currency", a.currency)
+        put("creditLimit", a.creditLimit)
     }
 
     private fun transactionEntityToJson(t: TransactionEntity) = JSONObject().apply {
@@ -397,6 +398,7 @@ private fun JSONObject.toAccountEntity(): AccountEntity {
         balance     = getDouble("balance"),
         kind        = kind,
         currency    = normalizeLedgerCurrencyCode(optString("currency", DEFAULT_LEDGER_CURRENCY)),
+        creditLimit = optDouble("creditLimit", 0.0).coerceAtLeast(0.0),
     )
 }
 
@@ -488,21 +490,23 @@ private fun parseBudgetsJson(json: String?): List<BudgetEntity> {
 // ── Mappers ────────────────────────────────────────────────────────────────
 
 private fun AccountEntity.toDomain() = Account(
-    id          = id,
-    name        = name,
-    institution = institution,
-    balance     = balance,
-    kind        = AccountKind.valueOf(kind),
-    currency    = normalizeLedgerCurrencyCode(currency),
+    id           = id,
+    name         = name,
+    institution  = institution,
+    balance      = balance,
+    kind         = AccountKind.valueOf(kind),
+    currency     = normalizeLedgerCurrencyCode(currency),
+    creditLimit  = creditLimit.coerceAtLeast(0.0),
 )
 
 private fun Account.toEntity() = AccountEntity(
-    id          = id,
-    name        = name,
-    institution = institution,
-    balance     = balance,
-    kind        = kind.name,
-    currency    = normalizeLedgerCurrencyCode(currency),
+    id           = id,
+    name         = name,
+    institution  = institution,
+    balance      = balance,
+    kind         = kind.name,
+    currency     = normalizeLedgerCurrencyCode(currency),
+    creditLimit  = creditLimit.coerceAtLeast(0.0),
 )
 
 private fun TransactionEntity.toDomain() = Transaction(

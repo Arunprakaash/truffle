@@ -6,12 +6,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import com.truffleapp.truffle.data.Account
+import com.truffleapp.truffle.data.AccountKind
 import com.truffleapp.truffle.data.Bill
 import com.truffleapp.truffle.data.appliedAfterMarkPaid
 import com.truffleapp.truffle.data.Goal
 import com.truffleapp.truffle.data.BackupImportPreview
 import com.truffleapp.truffle.data.ImportBackupResult
 import com.truffleapp.truffle.data.Transaction
+import com.truffleapp.truffle.data.canCoverExpense
 import com.truffleapp.truffle.data.UNASSIGNED_ACCOUNT_LABEL
 import com.truffleapp.truffle.data.normalizeLedgerCurrencyCode
 import com.truffleapp.truffle.data.db.LedgerRepository
@@ -96,13 +98,23 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
 
     // ── Transactions ───────────────────────────────────────────────────────
 
-    fun addTransaction(tx: Transaction) {
+    /**
+     * Records a transaction and updates the named account balance.
+     * Expenses cannot pull cash or investment balances below zero (credit is uncapped here).
+     */
+    fun addTransaction(tx: Transaction): Boolean {
+        if (tx.amount < 0.0) {
+            val key = tx.account.trim()
+            val acc = data.accounts.find { it.name.trim() == key } ?: return false
+            if (!acc.canCoverExpense(-tx.amount)) return false
+        }
         data = repo.persist(
             data.copy(
                 transactions = listOf(tx) + data.transactions,
                 accounts     = data.accounts.adjustBalanceForAccountNamed(tx.account, tx.amount),
             ),
         )
+        return true
     }
 
     fun removeTransaction(txId: String) {
@@ -131,14 +143,29 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
         data = repo.persist(data.copy(bills = data.bills + bill))
     }
 
-    fun markBillPaid(billId: String) {
+    /** Marks the bill paid and posts its amount from the linked account when one is set. */
+    fun markBillPaid(billId: String): Boolean {
+        val bill = data.bills.find { it.id == billId } ?: return false
+        val key = bill.account.trim()
+        val acc = if (key.isNotEmpty() && key != UNASSIGNED_ACCOUNT_LABEL) {
+            data.accounts.find { it.name.trim() == key }
+        } else {
+            null
+        }
+        if (acc != null && !acc.canCoverExpense(bill.amount)) return false
         data = repo.persist(
             data.copy(
-                bills = data.bills.map { bill ->
-                    if (bill.id == billId) bill.appliedAfterMarkPaid() else bill
+                bills = data.bills.map { b ->
+                    if (b.id == billId) b.appliedAfterMarkPaid() else b
+                },
+                accounts = if (acc != null) {
+                    data.accounts.adjustBalanceForAccountNamed(bill.account, -bill.amount)
+                } else {
+                    data.accounts
                 },
             ),
         )
+        return true
     }
 
     // ── Goals ──────────────────────────────────────────────────────────────
@@ -147,11 +174,32 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
         data = repo.persist(data.copy(goals = data.goals + goal))
     }
 
-    fun addToGoal(goalId: String, amount: Double) {
+    /** Moves [amount] from the given cash/invest account into the goal (credit accounts are ignored). */
+    fun addToGoal(goalId: String, amount: Double, fromAccountId: String): Boolean {
+        if (amount <= 0.0 || fromAccountId.isBlank()) return false
+        val acc = data.accounts.find { it.id == fromAccountId } ?: return false
+        if (acc.kind == AccountKind.Credit) return false
+        if (acc.balance + 1e-9 < amount) return false
         data = repo.persist(
             data.copy(
                 goals = data.goals.map { goal ->
                     if (goal.id == goalId) goal.copy(saved = goal.saved + amount) else goal
+                },
+                accounts = data.accounts.map { a ->
+                    if (a.id == fromAccountId) a.copy(balance = a.balance - amount) else a
+                },
+            ),
+        )
+        return true
+    }
+
+    /** Updates persisted monthly limits; spending stays derived from transactions. */
+    fun updateBudgetLimits(limitsById: Map<String, Double>) {
+        if (limitsById.isEmpty()) return
+        data = repo.persist(
+            data.copy(
+                budgets = data.budgets.map { b ->
+                    limitsById[b.id]?.let { lim -> b.copy(limit = lim) } ?: b
                 },
             ),
         )

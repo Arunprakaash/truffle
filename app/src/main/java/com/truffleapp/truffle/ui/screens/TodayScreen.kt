@@ -99,6 +99,7 @@ fun TodayScreen(
     onBill: (Bill) -> Unit = {},
     onNav: (NavDestination) -> Unit = {},
     onAdd: () -> Unit = {},
+    onConfigureBudgets: () -> Unit = {},
 ) {
     val topTx      = remember(data) { data.transactions.take(4) }
     val upcoming   = remember(data) {
@@ -151,8 +152,10 @@ fun TodayScreen(
 
         if (data.transactions.isNotEmpty() && data.budgets.isNotEmpty()) {
             SectionHeader(
-                title    = "Budgets",
-                modifier = Modifier.padding(bottom = 8.dp),
+                title     = "Budgets",
+                modifier  = Modifier.padding(bottom = 8.dp),
+                onMore    = onConfigureBudgets,
+                moreLabel = "Configure",
             )
             ListCard(padding = 6) {
                 data.budgets.forEachIndexed { i, budget ->

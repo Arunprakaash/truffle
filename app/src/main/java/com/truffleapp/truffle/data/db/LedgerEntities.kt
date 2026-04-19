@@ -26,6 +26,8 @@ data class AccountEntity(
     val kind: String,
     /** ISO 4217 */
     val currency: String = DEFAULT_LEDGER_CURRENCY,
+    /** Credit: max owed; 0 = not enforced. */
+    @ColumnInfo(name = "credit_limit") val creditLimit: Double = 0.0,
 )
 
 @Entity(tableName = "transactions")

@@ -112,7 +112,24 @@ data class Account(
     val kind: AccountKind,
     /** ISO 4217; amounts for this account are in this currency. */
     val currency: String = DEFAULT_LEDGER_CURRENCY,
+    /**
+     * Credit only: max principal owed (positive number). Spending is blocked when
+     * `balance - expense < -creditLimit`. **0** means no cap in the app (legacy behavior).
+     */
+    val creditLimit: Double = 0.0,
 )
+
+/** Positive [expenseAmount] (outflow magnitude). */
+fun Account.canCoverExpense(expenseAmount: Double): Boolean {
+    if (expenseAmount <= 0) return true
+    return when (kind) {
+        AccountKind.Credit -> {
+            if (creditLimit <= 0) return true
+            balance - expenseAmount >= -creditLimit - 1e-9
+        }
+        else -> balance + 1e-9 >= expenseAmount
+    }
+}
 
 enum class AccountKind { Cash, Invest, Credit }
 

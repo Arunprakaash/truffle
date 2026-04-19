@@ -128,6 +128,8 @@ fun SectionHeader(
     title: String,
     modifier: Modifier = Modifier,
     onMore: (() -> Unit)? = null,
+    /** Label for the trailing control when [onMore] is set (e.g. "All", "Configure"). */
+    moreLabel: String = "All",
 ) {
     Row(
         modifier = modifier
@@ -143,7 +145,7 @@ fun SectionHeader(
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
             ) {
                 Text(
-                    text = "All",
+                    text = moreLabel,
                     style = StillwaterType.navLabel,
                     color = ColorTextTertiary,
                 )

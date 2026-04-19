@@ -40,6 +40,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truffleapp.truffle.data.Account
 import com.truffleapp.truffle.data.AccountKind
+import com.truffleapp.truffle.data.normalizeLedgerCurrencyCode
 import com.truffleapp.truffle.data.Bill
 import com.truffleapp.truffle.data.Goal
 import com.truffleapp.truffle.data.BackupImportPreview
@@ -50,6 +51,7 @@ import com.truffleapp.truffle.data.currencyForAccountName
 import com.truffleapp.truffle.data.primaryAmountCurrency
 import com.truffleapp.truffle.navigation.NavDestination
 import com.truffleapp.truffle.ui.components.AddToGoalSheet
+import com.truffleapp.truffle.ui.components.BudgetConfigSheet
 import com.truffleapp.truffle.ui.components.AddTransactionSheet
 import com.truffleapp.truffle.ui.components.AddTypeSheet
 import com.truffleapp.truffle.ui.components.BillSheet
@@ -123,6 +125,7 @@ private fun LedgerApp() {
     var accountToEdit      by remember { mutableStateOf<Account?>(null) }
     var showClearAllConfirm by remember { mutableStateOf(false) }
     var pendingImport by remember { mutableStateOf<PendingImport?>(null) }
+    var showBudgetConfig by remember { mutableStateOf(false) }
 
     val appContext = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -174,11 +177,12 @@ private fun LedgerApp() {
     ) {
         when (currentDestination) {
             NavDestination.Today -> TodayScreen(
-                data   = data,
-                onTx   = { selectedTx = it },
-                onBill = { selectedBill = it },
-                onNav  = { currentDestination = it },
-                onAdd  = { showAddPicker = true },
+                data                 = data,
+                onTx                 = { selectedTx = it },
+                onBill               = { selectedBill = it },
+                onNav                = { currentDestination = it },
+                onAdd                = { showAddPicker = true },
+                onConfigureBudgets   = { showBudgetConfig = true },
             )
             NavDestination.Accounts -> AccountsScreen(
                 data                    = data,
@@ -222,24 +226,58 @@ private fun LedgerApp() {
             currencyCode = data.currencyForAccountName(bill.account),
             onDismiss = { selectedBill = null },
             onMarkPaid = { billId ->
-                viewModel.markBillPaid(billId)
-                selectedBill = null
+                if (viewModel.markBillPaid(billId)) {
+                    selectedBill = null
+                } else {
+                    Toast.makeText(
+                        appContext,
+                        "Not enough in the linked account (or over the card limit) to cover this bill.",
+                        Toast.LENGTH_LONG,
+                    ).show()
+                }
             },
         )
     }
 
     selectedGoal?.let { goal ->
-        val fromAccountLabel = data.accounts.firstOrNull { it.kind == AccountKind.Cash }?.name
-            ?: data.accounts.firstOrNull()?.name
-            ?: "your accounts"
+        val fromAccount = data.accounts.firstOrNull { it.kind == AccountKind.Cash }
+            ?: data.accounts.firstOrNull { it.kind == AccountKind.Invest }
+            ?: data.accounts.firstOrNull()
+        val maxTransfer = when (fromAccount?.kind) {
+            AccountKind.Credit -> 0.0
+            else -> fromAccount?.balance?.coerceAtLeast(0.0) ?: 0.0
+        }
+        val amountCurrency = fromAccount?.let { normalizeLedgerCurrencyCode(it.currency) }
+            ?: data.primaryAmountCurrency()
         AddToGoalSheet(
             goal = goal,
-            displayCurrency = data.primaryAmountCurrency(),
-            fromAccountLabel = fromAccountLabel,
+            amountCurrencyCode = amountCurrency,
+            fromAccountLabel = fromAccount?.name ?: "your accounts",
+            maxFromAccount = maxTransfer,
+            fromAccountId = fromAccount?.id ?: "",
             onDismiss = { selectedGoal = null },
-            onConfirm = { goalId, amount ->
-                viewModel.addToGoal(goalId, amount)
-                selectedGoal = null
+            onConfirm = { goalId, amount, fromId ->
+                val ok = viewModel.addToGoal(goalId, amount, fromId)
+                if (ok) {
+                    selectedGoal = null
+                } else {
+                    Toast.makeText(
+                        appContext,
+                        "Could not move that amount from the account.",
+                        Toast.LENGTH_LONG,
+                    ).show()
+                }
+            },
+        )
+    }
+
+    if (showBudgetConfig && data.budgets.isNotEmpty()) {
+        BudgetConfigSheet(
+            data = data,
+            onDismiss = { showBudgetConfig = false },
+            onSave = { limits ->
+                viewModel.updateBudgetLimits(limits)
+                showBudgetConfig = false
             },
         )
     }
@@ -262,8 +300,16 @@ private fun LedgerApp() {
             displayCurrency  = data.primaryAmountCurrency(),
             onDismiss        = { showAddTransaction = false },
             onAdd     = { tx ->
-                viewModel.addTransaction(tx)
-                showAddTransaction = false
+                val ok = viewModel.addTransaction(tx)
+                if (ok) {
+                    showAddTransaction = false
+                } else {
+                    Toast.makeText(
+                        appContext,
+                        "That expense is more than this account can cover (balance or card limit).",
+                        Toast.LENGTH_LONG,
+                    ).show()
+                }
             },
         )
     }

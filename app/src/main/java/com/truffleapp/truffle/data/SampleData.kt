@@ -23,7 +23,14 @@ val SampleData = LedgerData(
         Account("hys", "High-yield",  "Marcus",         18_000.00,  AccountKind.Cash),
         Account("brk", "Brokerage",   "Fidelity",       72_340.55,  AccountKind.Invest),
         Account("ret", "Retirement",  "Fidelity",       63_921.88,  AccountKind.Invest),
-        Account("crd", "Sapphire",    "Chase",          -2_300.38,  AccountKind.Credit),
+        Account(
+            id = "crd",
+            name = "Sapphire",
+            institution = "Chase",
+            balance = -2_300.38,
+            kind = AccountKind.Credit,
+            creditLimit = 15_000.0,
+        ),
     ),
 
     transactions = listOf(
