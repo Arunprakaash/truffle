@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Stillwater surface scale -->
+    <color name="color_page">#F5F1EB</color>
+    <color name="color_surface">#EDE8DF</color>
+    <color name="color_surface_2">#EAE5DC</color>
+    <color name="color_feature">#CBC4B2</color>
+    <color name="color_feature_2">#D8D0C3</color>
+
+    <!-- Ink scale -->
+    <color name="color_ink">#2E2A24</color>
+    <color name="color_text_secondary">#5C5448</color>
+    <color name="color_text_tertiary">#9E9284</color>
+    <color name="color_text_quaternary">#B5A898</color>
+    <color name="color_muted">#8C8070</color>
+
+    <!-- Borders -->
+    <color name="color_border_primary">#D4C9BA</color>
+    <color name="color_border_secondary">#D8D0C3</color>
+    <color name="color_border_tertiary">#E6DFD2</color>
+</resources>

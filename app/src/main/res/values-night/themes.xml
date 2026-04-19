@@ -1,0 +1,8 @@
+<resources>
+    <!-- Stillwater has no dark mode — same warm-light palette always -->
+    <style name="Theme.Truffle" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/color_page</item>
+        <item name="android:statusBarColor">@color/color_page</item>
+        <item name="android:navigationBarColor">@color/color_page</item>
+    </style>
+</resources>
