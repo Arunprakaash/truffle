@@ -2,7 +2,7 @@
 agp = "9.1.1"
 kotlin = "2.1.0"
 ksp = "2.1.0-1.0.29"
-room = "2.6.1"
+room = "2.8.4"
 coreKtx = "1.16.0"
 lifecycle = "2.9.0"
 junit = "4.13.2"
