@@ -63,6 +63,7 @@ import com.truffleapp.truffle.ui.theme.ColorInk
 import com.truffleapp.truffle.ui.theme.ColorPage
 import com.truffleapp.truffle.ui.theme.ColorSurface
 import com.truffleapp.truffle.ui.theme.ColorTextPrimary
+import com.truffleapp.truffle.ui.theme.ColorTextSerifMuted
 import com.truffleapp.truffle.ui.theme.ColorTextTertiary
 import com.truffleapp.truffle.ui.theme.SansFamily
 import com.truffleapp.truffle.ui.theme.SerifFamily
@@ -175,7 +176,7 @@ fun AddTransactionSheet(
                     style = TextStyle(
                         fontFamily = SerifFamily,
                         fontSize = 48.sp,
-                        color = if (amountText.isEmpty()) ColorTextTertiary else ColorInk,
+                        color = if (amountText.isEmpty()) ColorTextSerifMuted else ColorInk,
                     ),
                 )
                 BasicTextField(
@@ -204,7 +205,7 @@ fun AddTransactionSheet(
                                     style = TextStyle(
                                         fontFamily = SerifFamily,
                                         fontSize = 48.sp,
-                                        color = ColorTextTertiary,
+                                        color = ColorTextSerifMuted,
                                         fontFeatureSettings = "\"tnum\" on",
                                     ),
                                 )
@@ -360,7 +361,7 @@ fun AddTransactionSheet(
                                 fontFamily = SerifFamily,
                                 fontStyle = FontStyle.Italic,
                                 fontSize = 11.sp,
-                                color = ColorTextTertiary,
+                                color = ColorTextSerifMuted,
                             ),
                         )
                     }
@@ -472,7 +473,7 @@ internal fun FormTextField(
                                 fontFamily = SerifFamily,
                                 fontStyle = FontStyle.Italic,
                                 fontSize = 16.sp,
-                                color = ColorTextTertiary,
+                                color = ColorTextSerifMuted,
                             ),
                         )
                     }

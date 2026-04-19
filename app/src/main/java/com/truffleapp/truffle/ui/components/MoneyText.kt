@@ -10,7 +10,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import com.truffleapp.truffle.ui.theme.ColorInk
-import com.truffleapp.truffle.ui.theme.ColorTextTertiary
+import com.truffleapp.truffle.ui.theme.ColorTextSerifMuted
 import com.truffleapp.truffle.ui.theme.SerifFamily
 import java.text.NumberFormat
 import java.util.Locale
@@ -56,7 +56,7 @@ fun MoneyText(
     weight: FontWeight = FontWeight.Normal,
     textAlign: TextAlign = TextAlign.Unspecified,
 ) {
-    val resolvedColor = color ?: if (dimmed) ColorTextTertiary else ColorInk
+    val resolvedColor = color ?: if (dimmed) ColorTextSerifMuted else ColorInk
     Text(
         text = fmt(amount, cents = cents, sign = sign),
         modifier = modifier,

@@ -15,6 +15,16 @@ val ColorTextPrimary       = Color(0xFF2E2A24)
 val ColorTextSecondary     = Color(0xFF5C5448)
 val ColorTextTertiary      = Color(0xFF9E9284) // inactive nav labels, captions
 val ColorTextQuaternary    = Color(0xFFB5A898) // ghost numerals
+
+/** Darker than [ColorTextSecondary] for long Cormorant italic on warm surfaces (journal, dialogs). */
+val ColorTextSerifBody = Color(0xFF3E3730)
+
+/**
+ * Prefer over [ColorTextTertiary] for small Cormorant (especially italic), dimmed serif amounts,
+ * and serif tabular hints — thin strokes need stronger ink than Inter at the same gray.
+ */
+val ColorTextSerifMuted = Color(0xFF716658)
+
 val ColorMuted             = Color(0xFF8C8070) // icon strokes (secondary)
 
 // ── Borders ────────────────────────────────────────────────────────────────

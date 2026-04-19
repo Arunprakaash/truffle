@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.truffleapp.truffle.data.SampleData
 import com.truffleapp.truffle.data.Transaction
 import com.truffleapp.truffle.ui.theme.ColorInk
+import com.truffleapp.truffle.ui.theme.ColorTextSerifMuted
 import com.truffleapp.truffle.ui.theme.ColorTextTertiary
 import com.truffleapp.truffle.ui.theme.SansFamily
 import com.truffleapp.truffle.ui.theme.SerifFamily
@@ -81,7 +82,7 @@ fun TxRow(
                         fontFamily = SerifFamily,
                         fontStyle = FontStyle.Italic,
                         fontSize = 11.5.sp,
-                        color = ColorTextTertiary,
+                        color = ColorTextSerifMuted,
                     ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

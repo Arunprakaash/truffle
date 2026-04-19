@@ -54,7 +54,8 @@ import com.truffleapp.truffle.ui.theme.ColorInk
 import com.truffleapp.truffle.ui.theme.ColorPage
 import com.truffleapp.truffle.ui.theme.ColorSurface
 import com.truffleapp.truffle.ui.theme.ColorTextPrimary
-import com.truffleapp.truffle.ui.theme.ColorTextSecondary
+import com.truffleapp.truffle.ui.theme.ColorTextSerifBody
+import com.truffleapp.truffle.ui.theme.ColorTextSerifMuted
 import com.truffleapp.truffle.ui.theme.ColorTextTertiary
 import com.truffleapp.truffle.ui.theme.SansFamily
 import com.truffleapp.truffle.ui.theme.SerifFamily
@@ -119,7 +120,7 @@ private fun NameStep(onContinue: (String) -> Unit) {
                 fontFamily = SerifFamily,
                 fontStyle  = FontStyle.Italic,
                 fontSize   = 28.sp,
-                color      = ColorTextSecondary,
+                color      = ColorTextSerifBody,
                 lineHeight = (28 * 1.35).sp,
             ),
         )
@@ -158,7 +159,7 @@ private fun NameStep(onContinue: (String) -> Unit) {
                                     fontFamily = SerifFamily,
                                     fontStyle  = FontStyle.Italic,
                                     fontSize   = 32.sp,
-                                    color      = ColorTextTertiary,
+                                    color      = ColorTextSerifMuted,
                                 ),
                             )
                         }
@@ -251,7 +252,7 @@ private fun AccountStep(
                 fontFamily = SerifFamily,
                 fontStyle  = FontStyle.Italic,
                 fontSize   = 22.sp,
-                color      = ColorTextSecondary,
+                color      = ColorTextSerifBody,
                 lineHeight = (22 * 1.4).sp,
             ),
         )
@@ -291,7 +292,7 @@ private fun AccountStep(
                                     fontFamily = SerifFamily,
                                     fontStyle  = FontStyle.Italic,
                                     fontSize   = 22.sp,
-                                    color      = ColorTextTertiary,
+                                    color      = ColorTextSerifMuted,
                                 ),
                             )
                         }

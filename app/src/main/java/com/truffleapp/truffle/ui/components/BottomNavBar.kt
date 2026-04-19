@@ -37,6 +37,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.truffleapp.truffle.navigation.NavDestination
 import com.truffleapp.truffle.ui.theme.ColorBorderPrimary
@@ -46,6 +47,9 @@ import com.truffleapp.truffle.ui.theme.ColorTextPrimary
 import com.truffleapp.truffle.ui.theme.ColorTextTertiary
 import com.truffleapp.truffle.ui.theme.StillwaterTheme
 import com.truffleapp.truffle.ui.theme.StillwaterType
+
+/** Bottom padding for scrollable main tabs so the last rows clear the floating pill + gesture inset. */
+val BottomNavContentPadding: Dp = 132.dp
 
 private const val NAV_ANIM_MS = 320
 

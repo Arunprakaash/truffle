@@ -28,7 +28,7 @@ import com.truffleapp.truffle.data.Bill
 import com.truffleapp.truffle.ui.theme.ColorInk
 import com.truffleapp.truffle.ui.theme.ColorPage
 import com.truffleapp.truffle.ui.theme.ColorSurface
-import com.truffleapp.truffle.ui.theme.ColorTextTertiary
+import com.truffleapp.truffle.ui.theme.ColorTextSerifMuted
 import com.truffleapp.truffle.ui.theme.SerifFamily
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -92,7 +92,7 @@ fun BillSheet(
                     fontFamily = SerifFamily,
                     fontStyle = FontStyle.Italic,
                     fontSize = 14.sp,
-                    color = ColorTextTertiary,
+                    color = ColorTextSerifMuted,
                     lineHeight = (14 * 1.55).sp,
                 ),
             )

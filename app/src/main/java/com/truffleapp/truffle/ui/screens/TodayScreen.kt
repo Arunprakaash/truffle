@@ -44,6 +44,7 @@ import com.truffleapp.truffle.data.Transaction
 import com.truffleapp.truffle.data.Bill
 import com.truffleapp.truffle.data.WeeklyFlow
 import com.truffleapp.truffle.navigation.NavDestination
+import com.truffleapp.truffle.ui.components.BottomNavContentPadding
 import com.truffleapp.truffle.ui.components.BillRow
 import com.truffleapp.truffle.ui.components.Caps
 import com.truffleapp.truffle.ui.components.Hairline
@@ -60,6 +61,8 @@ import com.truffleapp.truffle.ui.theme.ColorMuted
 import com.truffleapp.truffle.ui.theme.ColorSurface
 import com.truffleapp.truffle.ui.theme.ColorTextPrimary
 import com.truffleapp.truffle.ui.theme.ColorTextSecondary
+import com.truffleapp.truffle.ui.theme.ColorTextSerifBody
+import com.truffleapp.truffle.ui.theme.ColorTextSerifMuted
 import com.truffleapp.truffle.ui.theme.ColorTextTertiary
 import com.truffleapp.truffle.ui.theme.SansFamily
 import com.truffleapp.truffle.ui.theme.SerifFamily
@@ -107,9 +110,9 @@ fun TodayScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .statusBarsPadding()                   // push content below status bar
-            // screen-level padding: 12 top / 18 sides / 100 bottom (nav bar clearance)
+            // screen-level padding: 12 top / 18 sides / bottom clears floating nav (see BottomNavContentPadding)
             .padding(horizontal = 18.dp)
-            .padding(top = 12.dp, bottom = 100.dp),
+            .padding(top = 12.dp, bottom = BottomNavContentPadding),
     ) {
         // ── Greeting ──────────────────────────────────────────────────────
         GreetingSection(
@@ -332,7 +335,7 @@ private fun NetWorthCard(data: LedgerData) {
 
         Text(
             text = deltaLine,
-            style = TextStyle(fontSize = 12.sp, color = ColorTextSecondary),
+            style = TextStyle(fontSize = 12.sp, color = ColorTextSerifBody),
             modifier = Modifier.padding(top = 10.dp),
         )
 
@@ -467,7 +470,7 @@ private fun DayOneAcknowledgment(data: LedgerData) {
             fontFamily    = SerifFamily,
             fontSize      = 15.sp,
             fontStyle     = FontStyle.Italic,
-            color           = ColorTextSecondary,
+            color           = ColorTextSerifBody,
             lineHeight     = (15 * 1.45).sp,
         ),
         modifier = Modifier.padding(horizontal = 4.dp),
@@ -518,7 +521,7 @@ private fun BudgetTodayRow(budget: Budget, isLast: Boolean) {
                 style = TextStyle(
                     fontFamily = SerifFamily,
                     fontSize   = 12.sp,
-                    color      = ColorTextTertiary,
+                    color      = ColorTextSerifMuted,
                 ),
             )
         }

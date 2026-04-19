@@ -35,8 +35,7 @@ import com.truffleapp.truffle.ui.theme.ColorBorderTertiary
 import com.truffleapp.truffle.ui.theme.ColorFeature2
 import com.truffleapp.truffle.ui.theme.ColorInk
 import com.truffleapp.truffle.ui.theme.ColorPage
-import com.truffleapp.truffle.ui.theme.ColorTextSecondary
-import com.truffleapp.truffle.ui.theme.ColorTextTertiary
+import com.truffleapp.truffle.ui.theme.ColorTextSerifMuted
 import com.truffleapp.truffle.ui.theme.SerifFamily
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -151,7 +150,7 @@ private fun TypeOption(
                     fontFamily = SerifFamily,
                     fontStyle = FontStyle.Italic,
                     fontSize = 12.sp,
-                    color = ColorTextTertiary,
+                    color = ColorTextSerifMuted,
                 ),
                 modifier = Modifier.padding(top = 2.dp),
             )

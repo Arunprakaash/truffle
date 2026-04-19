@@ -39,7 +39,7 @@ import com.truffleapp.truffle.ui.theme.ColorFeature2
 import com.truffleapp.truffle.ui.theme.ColorInk
 import com.truffleapp.truffle.ui.theme.ColorPage
 import com.truffleapp.truffle.ui.theme.ColorSurface
-import com.truffleapp.truffle.ui.theme.ColorTextTertiary
+import com.truffleapp.truffle.ui.theme.ColorTextSerifMuted
 import com.truffleapp.truffle.ui.theme.SerifFamily
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -97,7 +97,7 @@ fun AddToGoalSheet(
                     fontFamily = SerifFamily,
                     fontStyle = FontStyle.Italic,
                     fontSize = 13.sp,
-                    color = ColorTextTertiary,
+                    color = ColorTextSerifMuted,
                 ),
                 modifier = Modifier.padding(top = 4.dp),
             )
@@ -125,7 +125,7 @@ fun AddToGoalSheet(
                         fontFamily = SerifFamily,
                         fontStyle = FontStyle.Italic,
                         fontSize = 13.sp,
-                        color = ColorTextTertiary,
+                        color = ColorTextSerifMuted,
                     ),
                     modifier = Modifier.padding(top = 6.dp),
                 )

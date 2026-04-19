@@ -46,7 +46,7 @@ import com.truffleapp.truffle.ui.theme.ColorInk
 import com.truffleapp.truffle.ui.theme.ColorPage
 import com.truffleapp.truffle.ui.theme.ColorSurface
 import com.truffleapp.truffle.ui.theme.ColorTextPrimary
-import com.truffleapp.truffle.ui.theme.ColorTextSecondary
+import com.truffleapp.truffle.ui.theme.ColorTextSerifBody
 import com.truffleapp.truffle.ui.theme.ColorTextTertiary
 import com.truffleapp.truffle.ui.theme.SansFamily
 import com.truffleapp.truffle.ui.theme.SerifFamily
@@ -248,7 +248,7 @@ fun EditAccountSheet(
                         fontFamily      = SerifFamily,
                         fontStyle       = FontStyle.Italic,
                         fontSize        = 14.sp,
-                        color           = ColorTextSecondary,
+                        color           = ColorTextSerifBody,
                         lineHeight      = (14 * 1.55).sp,
                     ),
                 )

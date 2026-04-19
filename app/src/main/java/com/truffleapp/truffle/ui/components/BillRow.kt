@@ -22,8 +22,8 @@ import androidx.compose.ui.unit.sp
 import com.truffleapp.truffle.data.Bill
 import com.truffleapp.truffle.data.SampleData
 import com.truffleapp.truffle.ui.theme.ColorInk
-import com.truffleapp.truffle.ui.theme.ColorTextSecondary
-import com.truffleapp.truffle.ui.theme.ColorTextTertiary
+import com.truffleapp.truffle.ui.theme.ColorTextSerifBody
+import com.truffleapp.truffle.ui.theme.ColorTextSerifMuted
 import com.truffleapp.truffle.ui.theme.SansFamily
 import com.truffleapp.truffle.ui.theme.SerifFamily
 import com.truffleapp.truffle.ui.theme.StillwaterTheme
@@ -32,10 +32,10 @@ import com.truffleapp.truffle.ui.theme.StillwaterTheme
 // Reference spec (screens-home.jsx):
 //   padding        13px 14px
 //   gap            12dp
-//   left cell      34×34 box with days-until-due number (serif 15sp tertiary)
+//   left cell      34×34 box with days-until-due number (serif 15sp, ColorTextSerifMuted)
 //   label          sans 13sp weight 500 ink
-//   sub            serif italic 11.5sp tertiary — "in X days · Account"
-//   amount         serif 15sp secondary, shown negative (outflow)
+//   sub            serif italic 11.5sp muted — "in X days · Account"
+//   amount         serif 15sp ColorTextSerifBody, shown negative (outflow)
 //   hairline       starts at 60dp
 
 @Composable
@@ -63,7 +63,7 @@ fun BillRow(
                     style = TextStyle(
                         fontFamily = SerifFamily,
                         fontSize = 15.sp,
-                        color = ColorTextTertiary,
+                        color = ColorTextSerifMuted,
                         fontFeatureSettings = "\"tnum\" on",
                     ),
                 )
@@ -88,7 +88,7 @@ fun BillRow(
                         fontFamily = SerifFamily,
                         fontStyle = FontStyle.Italic,
                         fontSize = 11.5.sp,
-                        color = ColorTextTertiary,
+                        color = ColorTextSerifMuted,
                     ),
                     modifier = Modifier.padding(top = 2.dp),
                 )
@@ -100,7 +100,7 @@ fun BillRow(
             MoneyText(
                 amount = -bill.amount,
                 size = 15.sp,
-                color = ColorTextSecondary,
+                color = ColorTextSerifBody,
             )
         }
 

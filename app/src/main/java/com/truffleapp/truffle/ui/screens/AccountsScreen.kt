@@ -35,13 +35,15 @@ import com.truffleapp.truffle.data.AccountKind
 import com.truffleapp.truffle.data.LedgerData
 import com.truffleapp.truffle.data.SampleData
 import com.truffleapp.truffle.ui.components.AccountBackupSheet
+import com.truffleapp.truffle.ui.components.BottomNavContentPadding
 import com.truffleapp.truffle.ui.components.AccountRow
 import com.truffleapp.truffle.ui.components.Caps
 import com.truffleapp.truffle.ui.components.MoneyText
 import com.truffleapp.truffle.ui.theme.ColorInk
 import com.truffleapp.truffle.ui.theme.ColorSurface
 import com.truffleapp.truffle.ui.theme.ColorTextSecondary
-import com.truffleapp.truffle.ui.theme.ColorTextTertiary
+import com.truffleapp.truffle.ui.theme.ColorTextSerifBody
+import com.truffleapp.truffle.ui.theme.ColorTextSerifMuted
 import com.truffleapp.truffle.ui.theme.SerifFamily
 import com.truffleapp.truffle.ui.theme.StillwaterTheme
 
@@ -74,7 +76,7 @@ fun AccountsScreen(
             .verticalScroll(rememberScrollState())
             .statusBarsPadding()
             .padding(horizontal = 18.dp)
-            .padding(top = 12.dp, bottom = 100.dp),
+            .padding(top = 12.dp, bottom = BottomNavContentPadding),
     ) {
         // ── Summary header ────────────────────────────────────────────────
         Column(
@@ -117,7 +119,7 @@ fun AccountsScreen(
                     fontFamily = SerifFamily,
                     fontStyle  = FontStyle.Italic,
                     fontSize   = 12.sp,
-                    color      = ColorTextTertiary,
+                    color      = ColorTextSerifMuted,
                 ),
                 modifier = Modifier.padding(top = 6.dp),
             )
@@ -128,7 +130,7 @@ fun AccountsScreen(
                     fontFamily = SerifFamily,
                     fontStyle  = FontStyle.Italic,
                     fontSize   = 12.sp,
-                    color      = ColorTextSecondary,
+                    color      = ColorTextSerifBody,
                 ),
                 modifier = Modifier.padding(top = 10.dp),
             )

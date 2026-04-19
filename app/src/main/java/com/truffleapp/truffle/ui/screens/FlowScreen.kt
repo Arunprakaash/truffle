@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import com.truffleapp.truffle.data.LedgerData
 import com.truffleapp.truffle.data.SampleData
 import com.truffleapp.truffle.data.Transaction
+import com.truffleapp.truffle.ui.components.BottomNavContentPadding
 import com.truffleapp.truffle.ui.components.Caps
 import com.truffleapp.truffle.ui.components.MoneyText
 import com.truffleapp.truffle.ui.components.TxRow
@@ -49,6 +50,8 @@ import com.truffleapp.truffle.ui.theme.ColorFeature2
 import com.truffleapp.truffle.ui.theme.ColorSurface
 import com.truffleapp.truffle.ui.theme.ColorTextPrimary
 import com.truffleapp.truffle.ui.theme.ColorTextSecondary
+import com.truffleapp.truffle.ui.theme.ColorTextSerifBody
+import com.truffleapp.truffle.ui.theme.ColorTextSerifMuted
 import com.truffleapp.truffle.ui.theme.ColorTextTertiary
 import com.truffleapp.truffle.ui.theme.SansFamily
 import com.truffleapp.truffle.ui.theme.SerifFamily
@@ -100,7 +103,7 @@ fun FlowScreen(
             .verticalScroll(rememberScrollState())
             .statusBarsPadding()
             .padding(horizontal = 18.dp)
-            .padding(top = 12.dp, bottom = 100.dp),
+            .padding(top = 12.dp, bottom = BottomNavContentPadding),
     ) {
         // ── Summary header ─────────────────────────────────────────────────
         Column(
@@ -118,7 +121,7 @@ fun FlowScreen(
                     fontFamily = SerifFamily,
                     fontStyle  = FontStyle.Italic,
                     fontSize   = 16.sp,
-                    color      = ColorTextSecondary,
+                    color      = ColorTextSerifBody,
                     lineHeight = (16 * 1.5).sp,
                 ),
                 modifier = Modifier.padding(bottom = 6.dp),
@@ -141,7 +144,7 @@ fun FlowScreen(
                         append(fmt(totalIn, cents = true))
                     }
                 },
-                style    = TextStyle(fontSize = 12.sp, color = ColorTextTertiary),
+                style    = TextStyle(fontSize = 12.sp, color = ColorTextSerifMuted),
                 modifier = Modifier.padding(top = 4.dp),
             )
         }

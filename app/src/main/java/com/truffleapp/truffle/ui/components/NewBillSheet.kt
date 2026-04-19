@@ -46,6 +46,7 @@ import com.truffleapp.truffle.ui.theme.ColorBorderTertiary
 import com.truffleapp.truffle.ui.theme.ColorInk
 import com.truffleapp.truffle.ui.theme.ColorPage
 import com.truffleapp.truffle.ui.theme.ColorSurface
+import com.truffleapp.truffle.ui.theme.ColorTextSerifMuted
 import com.truffleapp.truffle.ui.theme.ColorTextTertiary
 import com.truffleapp.truffle.ui.theme.SerifFamily
 import java.time.Instant
@@ -187,7 +188,7 @@ fun NewBillSheet(
                                 fontFamily = SerifFamily,
                                 fontStyle = FontStyle.Italic,
                                 fontSize = 11.sp,
-                                color = ColorTextTertiary,
+                                color = ColorTextSerifMuted,
                             ),
                         )
                     }
@@ -238,7 +239,7 @@ fun NewBillSheet(
                                 fontFamily = SerifFamily,
                                 fontStyle = FontStyle.Italic,
                                 fontSize = 11.sp,
-                                color = ColorTextTertiary,
+                                color = ColorTextSerifMuted,
                             ),
                         )
                     }

@@ -64,7 +64,7 @@ import com.truffleapp.truffle.ui.screens.TodayScreen
 import com.truffleapp.truffle.ui.screens.TruffleSplash
 import com.truffleapp.truffle.ui.theme.ColorInk
 import com.truffleapp.truffle.ui.theme.ColorPage
-import com.truffleapp.truffle.ui.theme.ColorTextSecondary
+import com.truffleapp.truffle.ui.theme.ColorTextSerifBody
 import com.truffleapp.truffle.ui.theme.ColorTextTertiary
 import com.truffleapp.truffle.ui.theme.SansFamily
 import com.truffleapp.truffle.ui.theme.SerifFamily
@@ -323,7 +323,7 @@ private fun LedgerApp() {
                         fontFamily = SerifFamily,
                         fontStyle  = FontStyle.Italic,
                         fontSize   = 14.sp,
-                        color      = ColorTextSecondary,
+                        color      = ColorTextSerifBody,
                         lineHeight = (14 * 1.55).sp,
                     ),
                 )
@@ -380,7 +380,7 @@ private fun LedgerApp() {
                         style = TextStyle(
                             fontFamily = SerifFamily,
                             fontSize   = 13.sp,
-                            color      = ColorTextSecondary,
+                            color      = ColorTextSerifBody,
                             lineHeight = (13 * 1.45).sp,
                         ),
                     )
@@ -391,7 +391,7 @@ private fun LedgerApp() {
                             fontFamily = SerifFamily,
                             fontStyle  = FontStyle.Italic,
                             fontSize   = 14.sp,
-                            color      = ColorTextSecondary,
+                            color      = ColorTextSerifBody,
                             lineHeight = (14 * 1.55).sp,
                         ),
                     )

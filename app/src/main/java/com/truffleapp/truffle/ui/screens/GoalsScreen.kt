@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import com.truffleapp.truffle.data.Goal
 import com.truffleapp.truffle.data.LedgerData
 import com.truffleapp.truffle.data.SampleData
+import com.truffleapp.truffle.ui.components.BottomNavContentPadding
 import com.truffleapp.truffle.ui.components.MoneyText
 import com.truffleapp.truffle.ui.components.ProgressBar
 import com.truffleapp.truffle.ui.components.RingProgress
@@ -44,6 +45,8 @@ import com.truffleapp.truffle.ui.theme.ColorInk
 import com.truffleapp.truffle.ui.theme.ColorPage
 import com.truffleapp.truffle.ui.theme.ColorSurface
 import com.truffleapp.truffle.ui.theme.ColorTextSecondary
+import com.truffleapp.truffle.ui.theme.ColorTextSerifBody
+import com.truffleapp.truffle.ui.theme.ColorTextSerifMuted
 import com.truffleapp.truffle.ui.theme.ColorTextTertiary
 import com.truffleapp.truffle.ui.theme.SansFamily
 import com.truffleapp.truffle.ui.theme.SerifFamily
@@ -64,7 +67,7 @@ fun GoalsScreen(
             .verticalScroll(rememberScrollState())
             .statusBarsPadding()
             .padding(horizontal = 18.dp)
-            .padding(top = 12.dp, bottom = 100.dp),
+            .padding(top = 12.dp, bottom = BottomNavContentPadding),
     ) {
         // ── Intro + list ──────────────────────────────────────────────────
         if (data.goals.isEmpty()) {
@@ -74,7 +77,7 @@ fun GoalsScreen(
                     fontFamily = SerifFamily,
                     fontStyle  = FontStyle.Italic,
                     fontSize   = 16.sp,
-                    color      = ColorTextSecondary,
+                    color      = ColorTextSerifBody,
                     lineHeight = (16 * 1.55).sp,
                 ),
                 modifier = Modifier
@@ -89,7 +92,7 @@ fun GoalsScreen(
                     fontFamily = SerifFamily,
                     fontStyle  = FontStyle.Italic,
                     fontSize   = 16.sp,
-                    color      = ColorTextSecondary,
+                    color      = ColorTextSerifBody,
                     lineHeight = (16 * 1.55).sp,
                 ),
                 modifier = Modifier
@@ -163,7 +166,7 @@ private fun GoalCard(goal: Goal, onAdd: () -> Unit) {
                         fontFamily = SerifFamily,
                         fontStyle  = FontStyle.Italic,
                         fontSize   = 13.sp,
-                        color      = ColorTextTertiary,
+                        color      = ColorTextSerifMuted,
                     ),
                     modifier = Modifier.padding(top = 2.dp),
                 )
@@ -195,7 +198,7 @@ private fun GoalCard(goal: Goal, onAdd: () -> Unit) {
                             append(fmt(goal.target))
                         }
                     },
-                    style = TextStyle(fontSize = 13.sp, color = ColorTextTertiary),
+                    style = TextStyle(fontSize = 13.sp, color = ColorTextSerifMuted),
                 )
             }
 

@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.sp
 import com.truffleapp.truffle.data.Account
 import com.truffleapp.truffle.data.SampleData
 import com.truffleapp.truffle.ui.theme.ColorInk
-import com.truffleapp.truffle.ui.theme.ColorTextTertiary
+import com.truffleapp.truffle.ui.theme.ColorTextSerifMuted
 import com.truffleapp.truffle.ui.theme.SansFamily
 import com.truffleapp.truffle.ui.theme.SerifFamily
 import com.truffleapp.truffle.ui.theme.StillwaterTheme
@@ -78,7 +78,7 @@ fun AccountRow(
                         fontFamily = SerifFamily,
                         fontStyle = FontStyle.Italic,
                         fontSize = 11.5.sp,
-                        color = ColorTextTertiary,
+                        color = ColorTextSerifMuted,
                     ),
                     modifier = Modifier.padding(top = 2.dp),
                 )

@@ -9,7 +9,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -19,7 +18,7 @@ import com.truffleapp.truffle.data.SampleData
 import com.truffleapp.truffle.data.pickReflection
 import java.time.LocalDate
 import com.truffleapp.truffle.ui.theme.ColorSurface
-import com.truffleapp.truffle.ui.theme.ColorTextSecondary
+import com.truffleapp.truffle.ui.theme.ColorTextSerifBody
 import com.truffleapp.truffle.ui.theme.SerifFamily
 import com.truffleapp.truffle.ui.theme.StillwaterTheme
 
@@ -29,10 +28,9 @@ import com.truffleapp.truffle.ui.theme.StillwaterTheme
 //   borderRadius   14dp
 //   padding        18dp vertical / 20dp horizontal
 //   label          optional Caps at top, gap 10dp before body
-//   body           serif italic 17sp #3E3730 lineHeight 1.55
+//   body           serif italic 17sp, see [ColorTextSerifBody]
 
 private val CardShape = RoundedCornerShape(14.dp)
-private val BodyColor = Color(0xFF3E3730)  // slightly warmer than ink, per reference
 
 @Composable
 fun IntentionCard(
@@ -58,7 +56,7 @@ fun IntentionCard(
                 fontFamily = SerifFamily,
                 fontStyle = FontStyle.Italic,
                 fontSize = 17.sp,
-                color = BodyColor,
+                color = ColorTextSerifBody,
                 lineHeight = (17 * 1.55).sp,
             ),
         )

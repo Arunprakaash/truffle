@@ -31,9 +31,9 @@ import kotlinx.coroutines.launch
 
 private val SplashTitleFont = FontFamily(
     Font(
-        resId     = R.font.cormorant_garamond_italic,
-        weight    = FontWeight.Normal,
-        style     = FontStyle.Normal,
+        resId     = R.font.cormorant_garamond_semibold_italic,
+        weight    = FontWeight.SemiBold,
+        style     = FontStyle.Italic,
     ),
 )
 
@@ -90,6 +90,8 @@ fun TruffleSplash(
             },
             style = TextStyle(
                 fontFamily = SplashTitleFont,
+                fontWeight = FontWeight.SemiBold,
+                fontStyle = FontStyle.Italic,
                 fontSize   = 44.sp,
                 color      = ColorInk,
                 letterSpacing = 0.sp,
