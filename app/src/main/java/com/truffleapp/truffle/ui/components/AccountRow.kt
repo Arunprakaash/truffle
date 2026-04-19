@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truffleapp.truffle.data.Account
 import com.truffleapp.truffle.data.SampleData
+import com.truffleapp.truffle.data.normalizeLedgerCurrencyCode
 import com.truffleapp.truffle.ui.theme.ColorInk
 import com.truffleapp.truffle.ui.theme.ColorTextSerifMuted
 import com.truffleapp.truffle.ui.theme.SansFamily
@@ -89,7 +90,7 @@ fun AccountRow(
             // Show cents when balance is under $100k — matches reference logic
             MoneyText(
                 amount = account.balance,
-                currencyCode = account.currency,
+                currencyCode = normalizeLedgerCurrencyCode(account.currency),
                 size = 15.sp,
                 cents = abs(account.balance) < 100_000,
             )
@@ -107,7 +108,10 @@ private fun AccountRowPreview() {
     StillwaterTheme {
         Column {
             SampleData.accounts.forEachIndexed { i, account ->
-                AccountRow(account = account, isLast = i == SampleData.accounts.lastIndex)
+                AccountRow(
+                    account = account,
+                    isLast = i == SampleData.accounts.lastIndex,
+                )
             }
         }
     }

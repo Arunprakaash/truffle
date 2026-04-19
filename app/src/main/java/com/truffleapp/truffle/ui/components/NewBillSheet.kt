@@ -42,6 +42,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.truffleapp.truffle.data.Account
 import com.truffleapp.truffle.data.Bill
+import com.truffleapp.truffle.data.BillRecurrence
+import com.truffleapp.truffle.data.pickerLabel
 import com.truffleapp.truffle.ui.theme.ColorBorderTertiary
 import com.truffleapp.truffle.ui.theme.ColorInk
 import com.truffleapp.truffle.ui.theme.ColorPage
@@ -77,6 +79,7 @@ fun NewBillSheet(
     var dueDateEpoch  by remember { mutableLongStateOf(LocalDate.now().plusDays(7).toEpochDay()) }
     var showDatePicker by remember { mutableStateOf(false) }
     var accountIdx    by remember { mutableIntStateOf(0) }
+    var recurrence    by remember { mutableStateOf(BillRecurrence.None) }
 
     val canSubmit = label.isNotBlank() && (amountText.toDoubleOrNull() ?: 0.0) > 0
 
@@ -209,6 +212,51 @@ fun NewBillSheet(
 
             Spacer(Modifier.height(4.dp))
 
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Caps(text = "Repeats", modifier = Modifier.padding(bottom = 10.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                        ) {
+                            val order = listOf(
+                                BillRecurrence.None,
+                                BillRecurrence.Weekly,
+                                BillRecurrence.Monthly,
+                                BillRecurrence.Yearly,
+                            )
+                            val i = order.indexOf(recurrence).coerceAtLeast(0)
+                            recurrence = order[(i + 1) % order.size]
+                        }
+                        .padding(bottom = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = recurrence.pickerLabel(),
+                        style = TextStyle(
+                            fontFamily = SerifFamily,
+                            fontSize = 16.sp,
+                            color = ColorInk,
+                        ),
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(
+                        text = "tap to change",
+                        style = TextStyle(
+                            fontFamily = SerifFamily,
+                            fontStyle = FontStyle.Italic,
+                            fontSize = 11.sp,
+                            color = ColorTextSerifMuted,
+                        ),
+                    )
+                }
+                Hairline()
+            }
+
+            Spacer(Modifier.height(4.dp))
+
             // Account
             if (accounts.isNotEmpty()) {
                 val account = accounts[accountIdx % accounts.size]
@@ -262,6 +310,7 @@ fun NewBillSheet(
                             dueDateEpoch  = dueDateEpoch,
                             paid          = false,
                             account       = accounts.getOrNull(accountIdx % accounts.size)?.name ?: "",
+                            recurrence    = recurrence,
                         )
                     )
                 },

@@ -42,10 +42,10 @@ val SampleData = LedgerData(
     ),
 
     bills = listOf(
-        Bill("rent",     "Rent",     1_980.0, SAMPLE_ANCHOR.plusDays(8).toEpochDay(),  false, "Checking"),
-        Bill("spot",     "Spotify",     11.0, SAMPLE_ANCHOR.plusDays(3).toEpochDay(),  false, "Sapphire"),
+        Bill("rent",     "Rent",     1_980.0, SAMPLE_ANCHOR.plusDays(8).toEpochDay(),  false, "Checking", BillRecurrence.Monthly),
+        Bill("spot",     "Spotify",     11.0, SAMPLE_ANCHOR.plusDays(3).toEpochDay(),  false, "Sapphire", BillRecurrence.Monthly),
         Bill("gym",      "Gym",         42.0, SAMPLE_ANCHOR.plusDays(12).toEpochDay(), false, "Sapphire"),
-        Bill("phone",    "Phone",       65.0, SAMPLE_ANCHOR.plusDays(18).toEpochDay(), false, "Checking"),
+        Bill("phone",    "Phone",       65.0, SAMPLE_ANCHOR.plusDays(18).toEpochDay(), false, "Checking", BillRecurrence.Monthly),
         Bill("internet", "Internet",    70.0, SAMPLE_ANCHOR.plusDays(22).toEpochDay(), true,  "Checking"),
     ),
 

@@ -79,9 +79,18 @@ fun formatLedgerMoney(
     }
 }
 
-/** Currency used for amounts tied to [accountName] (transactions, bills); falls back to ledger default. */
+/** Currency for amounts tied to [accountName] (tx, bills); unassigned uses [LedgerData.displayCurrency]. */
 fun LedgerData.currencyForAccountName(accountName: String): String {
     val key = accountName.trim()
     if (key.isEmpty() || key == UNASSIGNED_ACCOUNT_LABEL) return displayCurrency
-    return accounts.find { it.name.trim() == key }?.currency ?: displayCurrency
+    return accounts.find { it.name.trim() == key }?.let { normalizeLedgerCurrencyCode(it.currency) }
+        ?: displayCurrency
 }
+
+/**
+ * Net worth and other “whole ledger” totals: with a single account, match that account’s
+ * [Account.currency] so it stays consistent with Edit account; otherwise [LedgerData.displayCurrency].
+ */
+fun LedgerData.primaryAmountCurrency(): String =
+    if (accounts.size == 1) normalizeLedgerCurrencyCode(accounts[0].currency)
+    else displayCurrency

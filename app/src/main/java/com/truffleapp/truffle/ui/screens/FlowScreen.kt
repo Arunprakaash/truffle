@@ -42,6 +42,7 @@ import com.truffleapp.truffle.data.LedgerData
 import com.truffleapp.truffle.data.SampleData
 import com.truffleapp.truffle.data.Transaction
 import com.truffleapp.truffle.data.currencyForAccountName
+import com.truffleapp.truffle.data.primaryAmountCurrency
 import com.truffleapp.truffle.ui.components.BottomNavContentPadding
 import com.truffleapp.truffle.ui.components.Caps
 import com.truffleapp.truffle.ui.components.MoneyText
@@ -131,7 +132,7 @@ fun FlowScreen(
             // totalOut is negative — MoneyText will prefix with "− "
             MoneyText(
                 amount = totalOut,
-                currencyCode = data.displayCurrency,
+                currencyCode = data.primaryAmountCurrency(),
                 size = 32.sp,
                 cents = true,
             )
@@ -148,7 +149,7 @@ fun FlowScreen(
                             fontFeatureSettings = "\"tnum\" on",
                         )
                     ) {
-                        append(fmt(totalIn, currencyCode = data.displayCurrency, cents = true))
+                        append(fmt(totalIn, currencyCode = data.primaryAmountCurrency(), cents = true))
                     }
                 },
                 style    = TextStyle(fontSize = 12.sp, color = ColorTextSerifMuted),

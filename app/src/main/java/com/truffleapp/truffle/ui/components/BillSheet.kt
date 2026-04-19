@@ -25,6 +25,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truffleapp.truffle.data.Bill
+import com.truffleapp.truffle.data.BillRecurrence
+import com.truffleapp.truffle.data.pickerLabel
 import com.truffleapp.truffle.ui.theme.ColorInk
 import com.truffleapp.truffle.ui.theme.ColorPage
 import com.truffleapp.truffle.ui.theme.ColorSurface
@@ -102,6 +104,20 @@ fun BillSheet(
                     lineHeight = (14 * 1.55).sp,
                 ),
             )
+
+            if (bill.recurrence != BillRecurrence.None) {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = bill.recurrence.pickerLabel(),
+                    style = TextStyle(
+                        fontFamily = SerifFamily,
+                        fontStyle = FontStyle.Italic,
+                        fontSize = 13.sp,
+                        color = ColorTextSerifMuted,
+                        lineHeight = (13 * 1.5).sp,
+                    ),
+                )
+            }
 
             Spacer(Modifier.height(24.dp))
 

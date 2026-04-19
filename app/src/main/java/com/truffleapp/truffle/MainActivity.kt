@@ -47,6 +47,7 @@ import com.truffleapp.truffle.data.ImportBackupResult
 import com.truffleapp.truffle.data.LEDGER_BACKUP_SCHEMA_VERSION
 import com.truffleapp.truffle.data.Transaction
 import com.truffleapp.truffle.data.currencyForAccountName
+import com.truffleapp.truffle.data.primaryAmountCurrency
 import com.truffleapp.truffle.navigation.NavDestination
 import com.truffleapp.truffle.ui.components.AddToGoalSheet
 import com.truffleapp.truffle.ui.components.AddTransactionSheet
@@ -233,7 +234,7 @@ private fun LedgerApp() {
             ?: "your accounts"
         AddToGoalSheet(
             goal = goal,
-            displayCurrency = data.displayCurrency,
+            displayCurrency = data.primaryAmountCurrency(),
             fromAccountLabel = fromAccountLabel,
             onDismiss = { selectedGoal = null },
             onConfirm = { goalId, amount ->
@@ -258,7 +259,7 @@ private fun LedgerApp() {
     if (showAddTransaction) {
         AddTransactionSheet(
             accounts         = data.accounts,
-            displayCurrency  = data.displayCurrency,
+            displayCurrency  = data.primaryAmountCurrency(),
             onDismiss        = { showAddTransaction = false },
             onAdd     = { tx ->
                 viewModel.addTransaction(tx)
@@ -290,7 +291,7 @@ private fun LedgerApp() {
 
     if (showAddAccount) {
         NewAccountSheet(
-            defaultAccountCurrency = data.displayCurrency,
+            defaultAccountCurrency = data.primaryAmountCurrency(),
             onDismiss = { showAddAccount = false },
             onAdd     = { account ->
                 viewModel.addAccount(account)

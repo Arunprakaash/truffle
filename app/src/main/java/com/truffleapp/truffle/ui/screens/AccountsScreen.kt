@@ -34,6 +34,7 @@ import com.truffleapp.truffle.data.Account
 import com.truffleapp.truffle.data.AccountKind
 import com.truffleapp.truffle.data.LedgerData
 import com.truffleapp.truffle.data.SampleData
+import com.truffleapp.truffle.data.primaryAmountCurrency
 import com.truffleapp.truffle.ui.components.AccountBackupSheet
 import com.truffleapp.truffle.ui.components.BottomNavContentPadding
 import com.truffleapp.truffle.ui.components.AccountRow
@@ -115,7 +116,7 @@ fun AccountsScreen(
 
             MoneyText(
                 amount = data.netWorth,
-                currencyCode = data.displayCurrency,
+                currencyCode = data.primaryAmountCurrency(),
                 size = 36.sp,
             )
 
@@ -147,21 +148,21 @@ fun AccountsScreen(
         AccountGroup(
             title           = "Cash",
             total           = cashTotal,
-            displayCurrency = data.displayCurrency,
+            groupTotalCurrency = data.primaryAmountCurrency(),
             accounts        = cash,
             onEdit          = onEditAccount,
         )
         AccountGroup(
             title           = "Investments",
             total           = investTotal,
-            displayCurrency = data.displayCurrency,
+            groupTotalCurrency = data.primaryAmountCurrency(),
             accounts        = invest,
             onEdit          = onEditAccount,
         )
         AccountGroup(
             title           = "Credit",
             total           = creditTotal,
-            displayCurrency = data.displayCurrency,
+            groupTotalCurrency = data.primaryAmountCurrency(),
             accounts        = credit,
             onEdit          = onEditAccount,
         )
@@ -174,7 +175,7 @@ fun AccountsScreen(
 private fun AccountGroup(
     title: String,
     total: Double,
-    displayCurrency: String,
+    groupTotalCurrency: String,
     accounts: List<Account>,
     onEdit: (Account) -> Unit,
 ) {
@@ -192,7 +193,7 @@ private fun AccountGroup(
             Caps(text = title, modifier = Modifier.weight(1f))
             MoneyText(
                 amount = total,
-                currencyCode = displayCurrency,
+                currencyCode = groupTotalCurrency,
                 size   = 14.sp,
                 color  = ColorTextSecondary,
             )
@@ -208,9 +209,9 @@ private fun AccountGroup(
         ) {
             accounts.forEachIndexed { i, account ->
                 AccountRow(
-                    account = account,
-                    isLast   = i == accounts.lastIndex,
-                    onEdit   = { onEdit(account) },
+                    account           = account,
+                    isLast            = i == accounts.lastIndex,
+                    onEdit            = { onEdit(account) },
                 )
             }
         }

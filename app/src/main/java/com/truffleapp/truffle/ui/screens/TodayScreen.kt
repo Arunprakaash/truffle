@@ -43,6 +43,7 @@ import com.truffleapp.truffle.data.pickReflection
 import com.truffleapp.truffle.data.Transaction
 import com.truffleapp.truffle.data.Bill
 import com.truffleapp.truffle.data.currencyForAccountName
+import com.truffleapp.truffle.data.primaryAmountCurrency
 import com.truffleapp.truffle.data.WeeklyFlow
 import com.truffleapp.truffle.navigation.NavDestination
 import com.truffleapp.truffle.ui.components.BottomNavContentPadding
@@ -158,7 +159,7 @@ fun TodayScreen(
                     BudgetTodayRow(
                         budget          = budget,
                         isLast          = i == data.budgets.lastIndex,
-                        displayCurrency = data.displayCurrency,
+                        displayCurrency = data.primaryAmountCurrency(),
                     )
                 }
             }
@@ -302,7 +303,7 @@ private fun NetWorthCard(data: LedgerData) {
             modifier = Modifier.padding(bottom = 14.dp),
         )
 
-        MoneyText(amount = data.netWorth, size = 40.sp, currencyCode = data.displayCurrency)
+        MoneyText(amount = data.netWorth, size = 40.sp, currencyCode = data.primaryAmountCurrency())
 
         val deltaLine = remember(data.netWorth, data.netWorthLastMonth, data.netWorthDelta) {
             when {
@@ -336,7 +337,7 @@ private fun NetWorthCard(data: LedgerData) {
                                 fontFeatureSettings = "\"tnum\" on, \"lnum\" on",
                             )
                         ) {
-                            append(fmt(data.netWorthDelta, currencyCode = data.displayCurrency, sign = true))
+                            append(fmt(data.netWorthDelta, currencyCode = data.primaryAmountCurrency(), sign = true))
                         }
                     }
                 }
@@ -412,7 +413,7 @@ private fun MiniTrend(weeklyFlow: List<WeeklyFlow>, modifier: Modifier = Modifie
 }
 
 // ── This month section ─────────────────────────────────────────────────────
-// Prose with inline serif money amounts and italic "right".
+// Full sentence in Cormorant semibold italic (amounts, symbol/code from fmt, and prose).
 @Composable
 private fun ThisMonthSection(data: LedgerData, modifier: Modifier = Modifier) {
     Column(modifier = modifier.padding(bottom = 12.dp)) {
@@ -429,40 +430,34 @@ private fun ThisMonthSection(data: LedgerData, modifier: Modifier = Modifier) {
                     }
                 },
                 style = TextStyle(
-                    fontSize   = 14.sp,
+                    fontSize   = 17.sp,
                     color      = ColorTextPrimary,
-                    lineHeight = (14 * 1.65).sp,
+                    lineHeight = (17 * 1.55).sp,
                 ),
             )
         } else {
             Text(
                 text = buildAnnotatedString {
-                    withStyle(SpanStyle(fontFamily = SansFamily)) { append("You received ") }
-                    withStyle(
-                        SpanStyle(
-                            fontFamily = SerifFamily,
-                            fontWeight = FontWeight.SemiBold,
-                            fontFeatureSettings = "\"tnum\" on",
-                        )
-                    ) { append(fmt(data.inflow, currencyCode = data.displayCurrency)) }
-                    withStyle(SpanStyle(fontFamily = SansFamily)) { append(" and let ") }
-                    withStyle(
-                        SpanStyle(
-                            fontFamily = SerifFamily,
-                            fontWeight = FontWeight.SemiBold,
-                            fontFeatureSettings = "\"tnum\" on",
-                        )
-                    ) { append(fmt(data.outflow, currencyCode = data.displayCurrency)) }
-                    withStyle(SpanStyle(fontFamily = SansFamily)) { append(" go. A pace that feels ") }
-                    withStyle(SpanStyle(fontFamily = SerifFamily, fontStyle = FontStyle.Italic)) {
-                        append("right")
+                    val line = SpanStyle(
+                        fontFamily = SerifFamily,
+                        fontStyle = FontStyle.Italic,
+                        fontWeight = FontWeight.SemiBold,
+                        fontFeatureSettings = "\"tnum\" on, \"lnum\" on",
+                    )
+                    withStyle(line) { append("You received ") }
+                    withStyle(line) {
+                        append(fmt(data.inflow, currencyCode = data.primaryAmountCurrency()))
                     }
-                    withStyle(SpanStyle(fontFamily = SansFamily)) { append(".") }
+                    withStyle(line) { append(" and let ") }
+                    withStyle(line) {
+                        append(fmt(data.outflow, currencyCode = data.primaryAmountCurrency()))
+                    }
+                    withStyle(line) { append(" go. A pace that feels right.") }
                 },
                 style = TextStyle(
-                    fontSize   = 14.sp,
+                    fontSize   = 17.sp,
                     color      = ColorTextPrimary,
-                    lineHeight = (14 * 1.65).sp,
+                    lineHeight = (17 * 1.55).sp,
                 ),
             )
         }
@@ -535,9 +530,11 @@ private fun BudgetTodayRow(budget: Budget, isLast: Boolean, displayCurrency: Str
                 text  = "${fmt(budget.spent, currencyCode = displayCurrency)} / ${fmt(budget.limit, currencyCode = displayCurrency)}",
                 style = TextStyle(
                     fontFamily = SerifFamily,
+                    fontStyle = FontStyle.Normal,
                     fontWeight = FontWeight.SemiBold,
                     fontSize   = 12.sp,
                     color      = ColorTextSerifMuted,
+                    fontFeatureSettings = "\"tnum\" on, \"lnum\" on",
                 ),
             )
         }

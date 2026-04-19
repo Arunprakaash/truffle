@@ -20,6 +20,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truffleapp.truffle.data.Bill
+import com.truffleapp.truffle.data.BillRecurrence
+import com.truffleapp.truffle.data.rowHint
 import com.truffleapp.truffle.data.DEFAULT_LEDGER_CURRENCY
 import com.truffleapp.truffle.data.SampleData
 import com.truffleapp.truffle.ui.theme.ColorInk
@@ -85,7 +87,15 @@ fun BillRow(
                     ),
                 )
                 Text(
-                    text = "${bill.relativeDuePhrase()} · ${bill.account}",
+                    text = buildString {
+                        append(bill.relativeDuePhrase())
+                        append(" · ")
+                        append(bill.account)
+                        if (bill.recurrence != BillRecurrence.None) {
+                            append(" · ")
+                            append(bill.recurrence.rowHint())
+                        }
+                    },
                     style = TextStyle(
                         fontFamily = SerifFamily,
                         fontStyle = FontStyle.Italic,

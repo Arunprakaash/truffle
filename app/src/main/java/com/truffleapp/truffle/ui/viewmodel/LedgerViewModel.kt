@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import com.truffleapp.truffle.data.Account
 import com.truffleapp.truffle.data.Bill
+import com.truffleapp.truffle.data.appliedAfterMarkPaid
 import com.truffleapp.truffle.data.Goal
 import com.truffleapp.truffle.data.BackupImportPreview
 import com.truffleapp.truffle.data.ImportBackupResult
@@ -134,7 +135,7 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
         data = repo.persist(
             data.copy(
                 bills = data.bills.map { bill ->
-                    if (bill.id == billId) bill.copy(paid = true) else bill
+                    if (bill.id == billId) bill.appliedAfterMarkPaid() else bill
                 },
             ),
         )

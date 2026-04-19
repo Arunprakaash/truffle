@@ -23,6 +23,58 @@ data class Transaction(
     val recordedEpochDay: Long = 0L,
 )
 
+enum class BillRecurrence {
+    None,
+    Weekly,
+    Monthly,
+    Yearly,
+}
+
+fun parseBillRecurrence(raw: String): BillRecurrence =
+    when (raw.trim().uppercase()) {
+        "WEEKLY" -> BillRecurrence.Weekly
+        "MONTHLY" -> BillRecurrence.Monthly
+        "YEARLY" -> BillRecurrence.Yearly
+        else -> BillRecurrence.None
+    }
+
+fun BillRecurrence.toPersistCode(): String =
+    when (this) {
+        BillRecurrence.None -> "NONE"
+        else -> name.uppercase()
+    }
+
+fun BillRecurrence.pickerLabel(): String =
+    when (this) {
+        BillRecurrence.None -> "Does not repeat"
+        BillRecurrence.Weekly -> "Every week"
+        BillRecurrence.Monthly -> "Every month"
+        BillRecurrence.Yearly -> "Every year"
+    }
+
+fun BillRecurrence.rowHint(): String =
+    when (this) {
+        BillRecurrence.None -> ""
+        BillRecurrence.Weekly -> "Weekly"
+        BillRecurrence.Monthly -> "Monthly"
+        BillRecurrence.Yearly -> "Yearly"
+    }
+
+/** One-off: set paid. Recurring: keep unpaid and advance due date by one period. */
+fun Bill.appliedAfterMarkPaid(): Bill =
+    if (recurrence == BillRecurrence.None) {
+        copy(paid = true)
+    } else {
+        val d = LocalDate.ofEpochDay(dueDateEpoch)
+        val next = when (recurrence) {
+            BillRecurrence.Weekly -> d.plusWeeks(1)
+            BillRecurrence.Monthly -> d.plusMonths(1)
+            BillRecurrence.Yearly -> d.plusYears(1)
+            BillRecurrence.None -> d
+        }
+        copy(paid = false, dueDateEpoch = next.toEpochDay())
+    }
+
 data class Bill(
     val id: String,
     val label: String,
@@ -31,6 +83,7 @@ data class Bill(
     val dueDateEpoch: Long,
     val paid: Boolean,
     val account: String,
+    val recurrence: BillRecurrence = BillRecurrence.None,
 ) {
     /** Whole days from [fromEpochDay] until the due date (negative if overdue). */
     fun daysUntilDue(fromEpochDay: Long = LocalDate.now().toEpochDay()): Int =

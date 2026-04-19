@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.truffleapp.truffle.data.Goal
 import com.truffleapp.truffle.data.LedgerData
 import com.truffleapp.truffle.data.SampleData
+import com.truffleapp.truffle.data.primaryAmountCurrency
 import com.truffleapp.truffle.ui.components.BottomNavContentPadding
 import com.truffleapp.truffle.ui.components.MoneyText
 import com.truffleapp.truffle.ui.components.ProgressBar
@@ -104,7 +105,7 @@ fun GoalsScreen(
                 data.goals.forEach { goal ->
                     GoalCard(
                         goal = goal,
-                        displayCurrency = data.displayCurrency,
+                        displayCurrency = data.primaryAmountCurrency(),
                         onAdd = { onAddToGoal(goal) },
                     )
                 }

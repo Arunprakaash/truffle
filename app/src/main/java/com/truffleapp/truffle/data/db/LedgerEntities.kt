@@ -50,6 +50,8 @@ data class BillEntity(
     @ColumnInfo(name = "due_date_epoch") val dueDateEpoch: Long,
     val paid: Boolean,
     val account: String,
+    /** NONE, WEEKLY, MONTHLY, YEARLY — see [com.truffleapp.truffle.data.BillRecurrence]. */
+    val recurrence: String = "NONE",
 )
 
 @Entity(tableName = "goals")

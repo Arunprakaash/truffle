@@ -98,8 +98,7 @@ fun AddTransactionSheet(
 
     val ledgerDc = normalizeLedgerCurrencyCode(displayCurrency)
     val amountRowCurrency = remember(ledgerDc, accountIdx, accounts) {
-        if (accounts.isEmpty()) ledgerDc
-        else normalizeLedgerCurrencyCode(accounts[accountIdx % accounts.size].currency)
+        accounts.getOrNull(accountIdx)?.let { normalizeLedgerCurrencyCode(it.currency) } ?: ledgerDc
     }
 
     val canSubmit = (amountText.toDoubleOrNull() ?: 0.0) > 0 && merchant.isNotBlank()

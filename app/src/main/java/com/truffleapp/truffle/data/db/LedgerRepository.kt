@@ -14,6 +14,8 @@ import com.truffleapp.truffle.data.LEDGER_BACKUP_SCHEMA_VERSION
 import com.truffleapp.truffle.data.LedgerData
 import com.truffleapp.truffle.data.normalizeLedgerCurrencyCode
 import com.truffleapp.truffle.data.Transaction
+import com.truffleapp.truffle.data.parseBillRecurrence
+import com.truffleapp.truffle.data.toPersistCode
 import com.truffleapp.truffle.data.emptyLedgerData
 import com.truffleapp.truffle.data.ledgerWithDerivedBudgetsAndWeekly
 import org.json.JSONArray
@@ -305,6 +307,7 @@ class LedgerRepository(application: Application) {
         put("dueDateEpoch", b.dueDateEpoch)
         put("paid", b.paid)
         put("account", b.account)
+        put("recurrence", b.recurrence)
     }
 
     private fun goalEntityToJson(g: GoalEntity) = JSONObject().apply {
@@ -430,6 +433,7 @@ private fun JSONObject.toBillEntity(): BillEntity {
         dueDateEpoch = dueEpoch,
         paid         = optBoolean("paid", false),
         account      = getString("account"),
+        recurrence   = parseBillRecurrence(optString("recurrence", "NONE")).toPersistCode(),
     )
 }
 
@@ -534,6 +538,7 @@ private fun BillEntity.toDomain() = Bill(
     dueDateEpoch  = dueDateEpoch,
     paid          = paid,
     account       = account,
+    recurrence    = parseBillRecurrence(recurrence),
 )
 
 private fun Bill.toEntity() = BillEntity(
@@ -543,6 +548,7 @@ private fun Bill.toEntity() = BillEntity(
     dueDateEpoch  = dueDateEpoch,
     paid          = paid,
     account       = account,
+    recurrence    = recurrence.toPersistCode(),
 )
 
 private fun GoalEntity.toDomain() = Goal(
