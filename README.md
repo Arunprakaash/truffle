@@ -40,7 +40,7 @@ Release builds turn on **code shrinking** and **resource shrinking** (`isMinifyE
    ./gradlew :app:assembleRelease
    ```
 
-4. Find the APK under **`app/build/outputs/apk/release/`**: with `keystore.properties` you get a **signed** `app-release.apk`. Without it, Gradle still builds an optimized **`app-release-unsigned.apk`** (R8 + shrunk resources)—sign it with `apksigner` (or add `keystore.properties` and rebuild) before publishing so installs and updates work normally.
+4. Find the APK under **`app/build/outputs/apk/release/`**: with `keystore.properties` you get a **signed** `truffle-release.apk`. Without it, Gradle still builds an optimized **`truffle-release-unsigned.apk`** (R8 + shrunk resources)—sign it with `apksigner` (or add `keystore.properties` and rebuild) before publishing so installs and updates work normally.
 
 5. Upload that signed APK to GitHub Releases.
 
@@ -52,7 +52,7 @@ Do **not** commit the keystore or `keystore.properties`.
 2. Open **[Draft a new release](https://github.com/Arunprakaash/truffle/releases/new)** (or **Releases → Draft a new release**).
 3. **Choose a tag** (e.g. `v1.0.0`) and create it if needed; title can match the tag.
 4. Describe changes in the release notes.
-5. **Attach** the signed `app-release.apk` (drag-and-drop).
+5. **Attach** the signed `truffle-release.apk` (drag-and-drop).
 6. Publish the release.
 
 Users who sideload get updates only if future APKs are signed with the **same** key as the one they installed first.

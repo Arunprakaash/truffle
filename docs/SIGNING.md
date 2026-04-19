@@ -1,6 +1,6 @@
 # Signing release APKs (Truffle)
 
-Use this when you ship a new version: a **signed** release APK installs on devices; an **unsigned** `app-release-unsigned.apk` does not.
+Use this when you ship a new version: a **signed** release APK installs on devices; an **unsigned** `truffle-release-unsigned.apk` does not.
 
 ## What this repo expects
 
@@ -8,7 +8,7 @@ Use this when you ship a new version: a **signed** release APK installs on devic
 - A **`.jks`** keystore file; `storeFile` in `keystore.properties` is resolved from the **repo root** (see `app/build.gradle.kts`).
 - Gradle task: **`./gradlew :app:assembleRelease`**
 
-Signed output: **`app/build/outputs/apk/release/app-release.apk`**
+Signed output: **`app/build/outputs/apk/release/truffle-release.apk`**
 
 ---
 
@@ -65,7 +65,7 @@ If the `.jks` lives outside the repo, use a **full path** for `storeFile`.
 1. Bump **`versionCode`** / **`versionName`** in `app/build.gradle.kts` when you want a new version number.
 2. Ensure **`keystore.properties`** and the **`.jks`** are still present (same machine, or restore from backup).
 3. Run **`./gradlew :app:assembleRelease`**.
-4. Upload **`app/build/outputs/apk/release/app-release.apk`** to [GitHub Releases](https://github.com/Arunprakaash/truffle/releases).
+4. Upload **`app/build/outputs/apk/release/truffle-release.apk`** to [GitHub Releases](https://github.com/Arunprakaash/truffle/releases).
 
 **Same keystore for every public release** so users who sideloaded an older APK can upgrade in place.
 
@@ -73,7 +73,7 @@ If the `.jks` lives outside the repo, use a **full path** for `storeFile`.
 
 ## Without `keystore.properties`
 
-Gradle still builds **`app-release-unsigned.apk`**. That file is **not installable** until you sign it (e.g. with `zipalign` + `apksigner`). Easiest path: add `keystore.properties` and rebuild so Gradle emits **`app-release.apk`** signed.
+Gradle still builds **`truffle-release-unsigned.apk`**. That file is **not installable** until you sign it (e.g. with `zipalign` + `apksigner`). Easiest path: add `keystore.properties` and rebuild so Gradle emits **`truffle-release.apk`** signed.
 
 ---
 

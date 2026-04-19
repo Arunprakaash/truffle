@@ -58,6 +58,26 @@ android {
     }
 }
 
+// Ship a stable APK filename (Gradle still builds app-release*.apk first).
+afterEvaluate {
+    tasks.named("packageRelease").configure {
+        doLast {
+            val releaseDir = layout.buildDirectory.dir("outputs/apk/release").get().asFile
+            fun renameIfPresent(from: String, to: String) {
+                val src = releaseDir.resolve(from)
+                val dst = releaseDir.resolve(to)
+                if (src.exists()) {
+                    dst.delete()
+                    src.copyTo(dst, overwrite = true)
+                    src.delete()
+                }
+            }
+            renameIfPresent("app-release.apk", "truffle-release.apk")
+            renameIfPresent("app-release-unsigned.apk", "truffle-release-unsigned.apk")
+        }
+    }
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
