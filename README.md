@@ -22,6 +22,8 @@ Debug:
 
 Release builds turn on **code shrinking** and **resource shrinking** (`isMinifyEnabled` / `isShrinkResources` in `app/build.gradle.kts`).
 
+**Signing (step-by-step for every release):** see [`docs/SIGNING.md`](docs/SIGNING.md).
+
 **Signing (local only, not committed):**
 
 1. One-time keystore (example; adjust alias/passwords):
