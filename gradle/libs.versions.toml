@@ -1,6 +1,6 @@
 [versions]
 agp = "9.1.1"
-kotlin = "2.1.0"
+kotlin = "2.3.20"
 ksp = "2.1.0-1.0.29"
 room = "2.6.1"
 coreKtx = "1.16.0"
