@@ -3,7 +3,6 @@ package com.truffleapp.truffle.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -196,17 +195,6 @@ fun NewBillSheet(
                         )
                     }
                     Hairline()
-                    val today = LocalDate.now()
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 10.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        BillDuePresetLink("Today") { dueDateEpoch = today.toEpochDay() }
-                        BillDuePresetLink("+7 days") { dueDateEpoch = today.plusDays(7).toEpochDay() }
-                        BillDuePresetLink("+30 days") { dueDateEpoch = today.plusDays(30).toEpochDay() }
-                    }
                 }
             }
 
@@ -329,21 +317,4 @@ fun NewBillSheet(
             }
         }
     }
-}
-
-@Composable
-private fun BillDuePresetLink(label: String, onClick: () -> Unit) {
-    Text(
-        text = label,
-        modifier = Modifier.clickable(
-            interactionSource = remember { MutableInteractionSource() },
-            indication = null,
-            onClick = onClick,
-        ),
-        style = TextStyle(
-            fontFamily = SerifFamily,
-            fontSize = 13.sp,
-            color = ColorInk,
-        ),
-    )
 }

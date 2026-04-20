@@ -52,6 +52,7 @@ import com.truffleapp.truffle.data.normalizeLedgerCurrencyCode
 import com.truffleapp.truffle.ui.components.Caps
 import com.truffleapp.truffle.ui.components.CurrencySelector
 import com.truffleapp.truffle.ui.components.Hairline
+import com.truffleapp.truffle.ui.components.rememberHaptics
 import com.truffleapp.truffle.ui.theme.ColorFeature2
 import com.truffleapp.truffle.ui.theme.ColorInk
 import com.truffleapp.truffle.ui.theme.ColorPage
@@ -204,6 +205,7 @@ private fun AccountStep(
     var accountName by remember { mutableStateOf("") }
     var selectedKind by remember { mutableStateOf(AccountKind.Cash) }
     var currencyCode by remember { mutableStateOf(DEFAULT_LEDGER_CURRENCY) }
+    val haptics = rememberHaptics()
     val canSubmit = accountName.isNotBlank()
 
     Column(
@@ -329,7 +331,12 @@ private fun AccountStep(
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication        = null,
-                        ) { selectedKind = kind }
+                        ) {
+                            if (selectedKind != kind) {
+                                haptics.tick()
+                                selectedKind = kind
+                            }
+                        }
                         .padding(vertical = 9.dp),
                     contentAlignment = Alignment.Center,
                 ) {

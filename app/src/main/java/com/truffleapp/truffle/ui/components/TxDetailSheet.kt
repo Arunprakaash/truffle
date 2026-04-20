@@ -1,5 +1,6 @@
 package com.truffleapp.truffle.ui.components
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -45,10 +46,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -56,25 +60,30 @@ import coil.request.ImageRequest
 import com.truffleapp.truffle.data.CATEGORIES
 import com.truffleapp.truffle.data.RECATEGORIZABLE
 import com.truffleapp.truffle.data.Transaction
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
 import com.truffleapp.truffle.ui.theme.ColorBorderTertiary
 import com.truffleapp.truffle.ui.theme.ColorFeature2
 import com.truffleapp.truffle.ui.theme.ColorInk
 import com.truffleapp.truffle.ui.theme.ColorPage
 import com.truffleapp.truffle.ui.theme.ColorSurface
 import com.truffleapp.truffle.ui.theme.ColorTextSerifBody
+import com.truffleapp.truffle.ui.theme.ColorTextSerifMuted
 import com.truffleapp.truffle.ui.theme.ColorTextTertiary
 import com.truffleapp.truffle.ui.theme.SerifFamily
 import com.truffleapp.truffle.ui.theme.SansFamily
-import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.ln
 import kotlin.math.tan
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TxDetailSheet(
     tx: Transaction,
     currencyCode: String,
+    transactions: List<Transaction> = emptyList(),
     onDismiss: () -> Unit,
     onRecategorize: (txId: String, category: String) -> Unit,
     onRemove: (txId: String) -> Unit = {},
@@ -120,11 +129,15 @@ fun TxDetailSheet(
                 verticalAlignment = Alignment.Top,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Caps(text = "${tx.date}, ${tx.time}", modifier = Modifier.padding(bottom = 6.dp))
+                    Caps(
+                        text = "${tx.date}, ${tx.time}",
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
                     Text(
                         text = tx.merchant,
                         style = TextStyle(
                             fontFamily = SerifFamily,
+                            fontWeight = FontWeight.SemiBold,
                             fontSize = 22.sp,
                             color = ColorInk,
                         ),
@@ -164,20 +177,6 @@ fun TxDetailSheet(
             )
 
             Spacer(Modifier.height(10.dp))
-
-            // Note
-            Text(
-                text = "${tx.note}.",
-                style = TextStyle(
-                    fontFamily = SerifFamily,
-                    fontStyle = FontStyle.Italic,
-                    fontSize = 14.sp,
-                    color = ColorTextSerifBody,
-                    lineHeight = (14 * 1.55).sp,
-                ),
-            )
-
-            Hairline(modifier = Modifier.padding(top = 22.dp, bottom = 4.dp))
 
             // Detail rows
             DetailRow(label = "Paid from", value = tx.account)
@@ -263,19 +262,15 @@ fun TxDetailSheet(
                     .padding(16.dp),
             ) {
                 Caps(text = "A note", modifier = Modifier.padding(bottom = 8.dp))
-                val noteText = if (tx.amount < 0) {
-                    "You have spent ${fmt(abs(tx.amount), currencyCode = currencyCode, cents = true)} at ${tx.merchant} this month. Still within what you intended."
-                } else {
-                    "Received. The kind of arrival that asks nothing in return."
-                }
+                val noteText = detailSheetNote(tx, transactions, currencyCode)
                 Text(
                     text = noteText,
                     style = TextStyle(
                         fontFamily = SerifFamily,
                         fontStyle = FontStyle.Italic,
-                        fontSize = 14.sp,
-                        color = ColorTextSerifBody,
-                        lineHeight = (14 * 1.6).sp,
+                        fontSize = 17.sp,
+                        color = ColorTextSerifMuted,
+                        lineHeight = (17 * 1.55).sp,
                     ),
                 )
             }
@@ -286,42 +281,61 @@ fun TxDetailSheet(
                 val context = LocalContext.current
                 val zoom = 16
                 val tile = latLngToTileInfo(tx.lat, tx.lng, zoom)
+                val mapTone = remember {
+                    ColorMatrix().apply { setToSaturation(0f) }
+                }
 
                 BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(160.dp)
+                        .height(132.dp)
                         .clip(RoundedCornerShape(14.dp)),
                 ) {
+                    // Fill full width with 3 tiles; height can crop top/bottom for a compact strip.
                     val tileSize = maxWidth / 3
 
-                    // 3×3 tile grid — centre tile contains the location
-                    Column {
-                        for (dy in -1..1) {
-                            Row {
-                                for (dx in -1..1) {
-                                    AsyncImage(
-                                        model = ImageRequest.Builder(context)
-                                            .data("https://tile.openstreetmap.org/$zoom/${tile.x + dx}/${tile.y + dy}.png")
-                                            .addHeader("User-Agent", "Truffle/1.2 personal-finance-app")
-                                            .crossfade(false)
-                                            .build(),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.FillBounds,
-                                        modifier = Modifier.size(tileSize),
-                                    )
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        // 3×3 tile grid — centre tile contains the location.
+                        Column {
+                            for (dy in -1..1) {
+                                Row {
+                                    for (dx in -1..1) {
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(context)
+                                                .data("https://tile.openstreetmap.org/$zoom/${tile.x + dx}/${tile.y + dy}.png")
+                                                .addHeader("User-Agent", "Truffle/1.2 personal-finance-app")
+                                                .crossfade(false)
+                                                .build(),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.FillBounds,
+                                            colorFilter = ColorFilter.colorMatrix(mapTone),
+                                            alpha = 0.86f,
+                                            modifier = Modifier.size(tileSize),
+                                        )
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    // Pin at exact sub-tile position
-                    Canvas(modifier = Modifier.fillMaxSize()) {
-                        val pinX = (tileSize * (1 + tile.fracX)).toPx()
-                        val pinY = (tileSize * (1 + tile.fracY)).toPx()
-                        val center = androidx.compose.ui.geometry.Offset(pinX, pinY)
-                        drawCircle(color = Color.White, radius = 10.dp.toPx(), center = center)
-                        drawCircle(color = Color(0xFF2E2A24), radius = 6.dp.toPx(), center = center)
+                        // Gentle warm overlay to keep map in Stillwater palette.
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(ColorPage.copy(alpha = 0.28f)),
+                        )
+
+                        // Pin at exact sub-tile position.
+                        Canvas(modifier = Modifier.fillMaxSize()) {
+                            val gridWidth = (tileSize * 3).toPx()
+                            val gridHeight = (tileSize * 3).toPx()
+                            val originX = (size.width - gridWidth) / 2f
+                            val originY = (size.height - gridHeight) / 2f
+                            val pinX = originX + (tileSize * (1 + tile.fracX)).toPx()
+                            val pinY = originY + (tileSize * (1 + tile.fracY)).toPx()
+                            val center = androidx.compose.ui.geometry.Offset(pinX, pinY)
+                            drawCircle(color = ColorPage, radius = 10.dp.toPx(), center = center)
+                            drawCircle(color = ColorInk, radius = 6.dp.toPx(), center = center)
+                        }
                     }
                 }
             }
@@ -416,7 +430,8 @@ private fun DetailRow(
                 text = value,
                 style = TextStyle(
                     fontFamily = SerifFamily,
-                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 17.sp,
                     color = ColorInk,
                 ),
             )
@@ -433,6 +448,58 @@ private fun DetailRow(
         }
     }
     Hairline()
+}
+
+private fun merchantKey(merchant: String): String = merchant.trim().lowercase()
+
+private fun transactionCalendarMonth(tx: Transaction): YearMonth? =
+    if (tx.recordedEpochDay > 0L) YearMonth.from(LocalDate.ofEpochDay(tx.recordedEpochDay))
+    else null
+
+private fun monthHeading(ym: YearMonth): String =
+    ym.format(DateTimeFormatter.ofPattern("MMMM yyyy"))
+
+private fun detailSheetNote(tx: Transaction, transactions: List<Transaction>, currencyCode: String): String {
+    val key = merchantKey(tx.merchant)
+    val ym = transactionCalendarMonth(tx)
+    if (tx.amount < 0.0) {
+        if (ym == null) {
+            return "This expense was ${fmt(-tx.amount, currencyCode = currencyCode, cents = true)} at ${tx.merchant}."
+        }
+        val monthTxs = transactions.filter { t ->
+            t.amount < 0.0 &&
+                merchantKey(t.merchant) == key &&
+                t.recordedEpochDay > 0L &&
+                YearMonth.from(LocalDate.ofEpochDay(t.recordedEpochDay)) == ym
+        }
+        val totalOut = monthTxs.sumOf { -it.amount }
+        val n = monthTxs.size
+        val heading = monthHeading(ym)
+        return when {
+            n <= 1 ->
+                "In $heading, this was ${fmt(-tx.amount, currencyCode = currencyCode, cents = true)} at ${tx.merchant}."
+            else ->
+                "In $heading, you spent ${fmt(totalOut, currencyCode = currencyCode, cents = true)} at ${tx.merchant} across $n visits."
+        }
+    }
+    if (ym == null) {
+        return "This inflow was ${fmt(tx.amount, currencyCode = currencyCode, cents = true)} from ${tx.merchant}."
+    }
+    val monthIn = transactions.filter { t ->
+        t.amount > 0.0 &&
+            merchantKey(t.merchant) == key &&
+            t.recordedEpochDay > 0L &&
+            YearMonth.from(LocalDate.ofEpochDay(t.recordedEpochDay)) == ym
+    }
+    val totalIn = monthIn.sumOf { row -> row.amount }
+    val n = monthIn.size
+    val heading = monthHeading(ym)
+    return when {
+        n <= 1 ->
+            "In $heading, this was ${fmt(tx.amount, currencyCode = currencyCode, cents = true)} from ${tx.merchant}."
+        else ->
+            "In $heading, you received ${fmt(totalIn, currencyCode = currencyCode, cents = true)} from ${tx.merchant} across $n deposits."
+    }
 }
 
 private data class TileInfo(val x: Int, val y: Int, val fracX: Float, val fracY: Float)

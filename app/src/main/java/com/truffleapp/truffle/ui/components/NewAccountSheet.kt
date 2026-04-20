@@ -58,6 +58,7 @@ fun NewAccountSheet(
     onAdd: (Account) -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val haptics = rememberHaptics()
 
     var name         by remember { mutableStateOf("") }
     var institution  by remember { mutableStateOf("") }
@@ -140,7 +141,12 @@ fun NewAccountSheet(
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication        = null,
-                            ) { selectedKind = kind }
+                            ) {
+                                if (selectedKind != kind) {
+                                    haptics.tick()
+                                    selectedKind = kind
+                                }
+                            }
                             .padding(vertical = 9.dp),
                         contentAlignment = Alignment.Center,
                     ) {

@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truffleapp.truffle.ui.theme.ColorBorderTertiary
@@ -75,7 +76,7 @@ fun AddTypeSheet(
 
             Spacer(Modifier.height(20.dp))
 
-            Caps(text = "What are you adding?", modifier = Modifier.padding(bottom = 16.dp))
+            Caps(text = "What are you adding?", modifier = Modifier.padding(bottom = 8.dp))
 
             TypeOption(
                 icon = Icons.AutoMirrored.Outlined.ReceiptLong,
@@ -140,6 +141,7 @@ private fun TypeOption(
                 text = title,
                 style = TextStyle(
                     fontFamily = SerifFamily,
+                    fontWeight = FontWeight.SemiBold,
                     fontSize = 18.sp,
                     color = ColorInk,
                 ),
@@ -149,8 +151,9 @@ private fun TypeOption(
                 style = TextStyle(
                     fontFamily = SerifFamily,
                     fontStyle = FontStyle.Italic,
-                    fontSize = 12.sp,
+                    fontSize = 17.sp,
                     color = ColorTextSerifMuted,
+                    lineHeight = (17 * 1.55).sp,
                 ),
                 modifier = Modifier.padding(top = 2.dp),
             )

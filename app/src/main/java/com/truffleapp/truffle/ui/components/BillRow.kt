@@ -1,5 +1,6 @@
 package com.truffleapp.truffle.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,10 +10,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -25,6 +29,7 @@ import com.truffleapp.truffle.data.rowHint
 import com.truffleapp.truffle.data.DEFAULT_LEDGER_CURRENCY
 import com.truffleapp.truffle.data.SampleData
 import com.truffleapp.truffle.ui.theme.ColorInk
+import com.truffleapp.truffle.ui.theme.ColorFeature2
 import com.truffleapp.truffle.ui.theme.ColorTextSerifBody
 import com.truffleapp.truffle.ui.theme.ColorTextSerifMuted
 import com.truffleapp.truffle.ui.theme.SansFamily
@@ -59,7 +64,10 @@ fun BillRow(
         ) {
             // Days-till-due — same footprint as IconCircle, but just a number
             Box(
-                modifier = Modifier.size(34.dp),
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(CircleShape)
+                    .background(ColorFeature2),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
@@ -67,8 +75,10 @@ fun BillRow(
                     style = TextStyle(
                         fontFamily = SerifFamily,
                         fontSize = 18.sp,
+                        lineHeight = 18.sp,
                         color = ColorInk,
-                        fontFeatureSettings = "\"tnum\" on",
+                        fontFeatureSettings = "\"tnum\" on, \"lnum\" on",
+                        platformStyle = PlatformTextStyle(includeFontPadding = false),
                     ),
                 )
             }

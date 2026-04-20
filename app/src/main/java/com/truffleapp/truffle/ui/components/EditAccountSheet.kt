@@ -65,6 +65,7 @@ fun EditAccountSheet(
     onDelete: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val haptics = rememberHaptics()
 
     var name         by remember(account.id) { mutableStateOf(account.name) }
     var institution  by remember(account.id) { mutableStateOf(account.institution) }
@@ -157,7 +158,12 @@ fun EditAccountSheet(
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication        = null,
-                            ) { selectedKind = kind }
+                            ) {
+                                if (selectedKind != kind) {
+                                    haptics.tick()
+                                    selectedKind = kind
+                                }
+                            }
                             .padding(vertical = 9.dp),
                         contentAlignment = Alignment.Center,
                     ) {
@@ -211,56 +217,57 @@ fun EditAccountSheet(
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(24.dp))
 
-            Button(
-                onClick = {
-                    val balance = balanceText.toDoubleOrNull() ?: 0.0
-                    val creditLimit = if (selectedKind == AccountKind.Credit) {
-                        creditLimitText.toDoubleOrNull()?.coerceAtLeast(0.0) ?: 0.0
-                    } else {
-                        0.0
-                    }
-                    onSave(
-                        account.copy(
-                            name         = name.trim(),
-                            institution  = institution.trim(),
-                            balance      = balance,
-                            kind         = selectedKind,
-                            currency     = currencyCode,
-                            creditLimit  = creditLimit,
-                        ),
-                    )
-                },
-                enabled  = canSubmit,
-                modifier = Modifier.fillMaxWidth(),
-                shape    = RoundedCornerShape(8.dp),
-                colors   = ButtonDefaults.buttonColors(
-                    containerColor         = ColorInk,
-                    contentColor           = ColorPage,
-                    disabledContainerColor = ColorSurface,
-                    disabledContentColor   = ColorTextTertiary,
-                ),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 14.dp),
-            ) {
-                Caps(text = "Save", color = if (canSubmit) ColorPage else ColorTextTertiary)
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = { showDeleteConfirm = true },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ColorSurface,
+                        contentColor = ColorInk,
+                    ),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 14.dp),
+                ) {
+                    Caps(text = "Delete")
+                }
+
+                Spacer(Modifier.width(10.dp))
+
+                Button(
+                    onClick = {
+                        val balance = balanceText.toDoubleOrNull() ?: 0.0
+                        val creditLimit = if (selectedKind == AccountKind.Credit) {
+                            creditLimitText.toDoubleOrNull()?.coerceAtLeast(0.0) ?: 0.0
+                        } else {
+                            0.0
+                        }
+                        onSave(
+                            account.copy(
+                                name         = name.trim(),
+                                institution  = institution.trim(),
+                                balance      = balance,
+                                kind         = selectedKind,
+                                currency     = currencyCode,
+                                creditLimit  = creditLimit,
+                            ),
+                        )
+                    },
+                    enabled = canSubmit,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ColorInk,
+                        contentColor = ColorPage,
+                        disabledContainerColor = ColorSurface,
+                        disabledContentColor = ColorTextTertiary,
+                    ),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 14.dp),
+                ) {
+                    Caps(text = "Save", color = if (canSubmit) ColorPage else ColorTextTertiary)
+                }
             }
-
-            Spacer(Modifier.height(20.dp))
-
-            Text(
-                text = "Delete account",
-                style = TextStyle(
-                    fontFamily = SansFamily,
-                    fontSize   = 13.sp,
-                    color      = ColorTextTertiary,
-                ),
-                modifier = Modifier
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication        = null,
-                    ) { showDeleteConfirm = true },
-            )
         }
     }
 

@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -48,6 +49,19 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
 
+private fun sliderHapticBucket(
+    value: Float,
+    minSlider: Float,
+    maxSlider: Float,
+    useTenStep: Boolean,
+): Int {
+    val x = value.coerceIn(minSlider, maxSlider)
+    if (useTenStep) return (round(x / 10f) * 10f).toInt()
+    val span = maxSlider - minSlider
+    if (span <= 1e-6f) return 0
+    return (((x - minSlider) / span) * 28f).toInt().coerceIn(0, 27)
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddToGoalSheet(
@@ -62,6 +76,7 @@ fun AddToGoalSheet(
     onConfirm: (goalId: String, amount: Double, fromAccountId: String) -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val haptics = rememberHaptics()
     val dc = normalizeLedgerCurrencyCode(amountCurrencyCode)
     val maxV = maxFromAccount.coerceAtLeast(0.0)
     val useTenStep = maxV >= 10.0
@@ -87,9 +102,21 @@ fun AddToGoalSheet(
         }
     }
     var sliderValue by remember(goal.id, maxFromAccount) { mutableFloatStateOf(initial) }
+    val lastHapticBucket = remember(goal.id, maxFromAccount, minSlider, maxSlider, useTenStep) {
+        mutableIntStateOf(
+            sliderHapticBucket(
+                initial.coerceIn(minSlider, maxSlider),
+                minSlider,
+                maxSlider,
+                useTenStep,
+            ),
+        )
+    }
 
-    LaunchedEffect(minSlider, maxSlider) {
-        sliderValue = sliderValue.coerceIn(minSlider, maxSlider)
+    LaunchedEffect(minSlider, maxSlider, useTenStep) {
+        val c = sliderValue.coerceIn(minSlider, maxSlider)
+        sliderValue = c
+        lastHapticBucket.intValue = sliderHapticBucket(c, minSlider, maxSlider, useTenStep)
     }
 
     val amount = when {
@@ -205,11 +232,17 @@ fun AddToGoalSheet(
                 Slider(
                     value = sliderValue.coerceIn(minSlider, maxSlider),
                     onValueChange = { v ->
-                        sliderValue = if (useTenStep) {
+                        val next = if (useTenStep) {
                             (round(v / 10f) * 10f).coerceIn(minSlider, maxSlider)
                         } else {
                             v.coerceIn(minSlider, maxSlider)
                         }
+                        val bucket = sliderHapticBucket(next, minSlider, maxSlider, useTenStep)
+                        if (bucket != lastHapticBucket.intValue) {
+                            lastHapticBucket.intValue = bucket
+                            haptics.tick()
+                        }
+                        sliderValue = next
                     },
                     valueRange = minSlider..maxSlider,
                     steps = stepsTen,
@@ -251,7 +284,15 @@ fun AddToGoalSheet(
                                     .clickable(
                                         interactionSource = remember { MutableInteractionSource() },
                                         indication = null,
-                                    ) { sliderValue = presetFloat.coerceIn(minSlider, maxSlider) }
+                                    ) {
+                                        val next = presetFloat.coerceIn(minSlider, maxSlider)
+                                        if (next != sliderValue) {
+                                            lastHapticBucket.intValue =
+                                                sliderHapticBucket(next, minSlider, maxSlider, useTenStep)
+                                            haptics.click()
+                                            sliderValue = next
+                                        }
+                                    }
                                     .padding(horizontal = 14.dp, vertical = 6.dp),
                             )
                         }

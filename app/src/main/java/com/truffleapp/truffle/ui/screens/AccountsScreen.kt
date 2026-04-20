@@ -1,6 +1,8 @@
 package com.truffleapp.truffle.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,10 +14,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,11 +34,13 @@ import com.truffleapp.truffle.data.AccountKind
 import com.truffleapp.truffle.data.LedgerData
 import com.truffleapp.truffle.data.SampleData
 import com.truffleapp.truffle.data.primaryAmountCurrency
+import com.truffleapp.truffle.navigation.NavDestination
 import com.truffleapp.truffle.ui.components.AccountBackupSheet
 import com.truffleapp.truffle.ui.components.BottomNavContentPadding
 import com.truffleapp.truffle.ui.components.AccountRow
 import com.truffleapp.truffle.ui.components.Caps
 import com.truffleapp.truffle.ui.components.MoneyText
+import com.truffleapp.truffle.ui.components.ScreenTopBar
 import com.truffleapp.truffle.ui.theme.ColorInk
 import com.truffleapp.truffle.ui.theme.ColorSurface
 import com.truffleapp.truffle.ui.theme.ColorTextSecondary
@@ -54,6 +55,7 @@ private val CardShape = RoundedCornerShape(14.dp)
 fun AccountsScreen(
     data: LedgerData,
     modifier: Modifier = Modifier,
+    onBackToToday: () -> Unit = {},
     onEditAccount: (Account) -> Unit = {},
     onExportBackup: () -> Unit = {},
     onImportBackup: () -> Unit = {},
@@ -77,16 +79,26 @@ fun AccountsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .statusBarsPadding()
-            .padding(horizontal = 18.dp)
-            .padding(top = 12.dp, bottom = BottomNavContentPadding),
+            .statusBarsPadding(),
     ) {
+        ScreenTopBar(
+            title = NavDestination.Accounts.label,
+            showBack = true,
+            onBackToToday = onBackToToday,
+            modifier = Modifier.padding(horizontal = 18.dp),
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 18.dp)
+                .padding(top = 4.dp, bottom = BottomNavContentPadding),
+        ) {
         // ── Summary header ────────────────────────────────────────────────
         Column(
             modifier = Modifier
                 .padding(horizontal = 4.dp)
-                .padding(top = 12.dp, bottom = 4.dp),
+                .padding(top = 4.dp, bottom = 4.dp),
         ) {
             var showBackupSheet by remember { mutableStateOf(false) }
             Row(
@@ -94,13 +106,17 @@ fun AccountsScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Caps(text = "Held in total", modifier = Modifier.weight(1f))
-                IconButton(onClick = { showBackupSheet = true }) {
-                    Icon(
-                        imageVector      = Icons.Outlined.MoreVert,
-                        contentDescription = "Data and backup",
-                        tint               = ColorInk,
-                    )
-                }
+//                Caps(
+//                    text = "Data",
+//                    modifier = Modifier
+//                        .clip(RoundedCornerShape(6.dp))
+//                        .clickable(
+//                            interactionSource = remember { MutableInteractionSource() },
+//                            indication = null,
+//                            onClick = { showBackupSheet = true },
+//                        )
+//                        .padding(horizontal = 6.dp, vertical = 4.dp),
+//                )
             }
 
             if (showBackupSheet) {
@@ -130,21 +146,11 @@ fun AccountsScreen(
                 style = TextStyle(
                     fontFamily = SerifFamily,
                     fontStyle  = FontStyle.Italic,
-                    fontSize   = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize   = 17.sp,
                     color      = ColorTextSerifMuted,
                 ),
                 modifier = Modifier.padding(top = 6.dp),
-            )
-
-            Text(
-                text = "Tap or hold an account to edit.",
-                style = TextStyle(
-                    fontFamily = SerifFamily,
-                    fontStyle  = FontStyle.Italic,
-                    fontSize   = 12.sp,
-                    color      = ColorTextSerifBody,
-                ),
-                modifier = Modifier.padding(top = 10.dp),
             )
         }
 
@@ -170,6 +176,7 @@ fun AccountsScreen(
             accounts        = credit,
             onEdit          = onEditAccount,
         )
+        }
     }
 }
 

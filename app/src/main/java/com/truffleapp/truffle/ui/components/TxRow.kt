@@ -109,7 +109,7 @@ fun TxRow(
                     style = TextStyle(
                         fontFamily = SansFamily,
                         fontSize = 10.sp,
-                        color = ColorTextTertiary,
+                        color = ColorTextSerifMuted,
                     ),
                     modifier = Modifier.padding(top = 2.dp),
                 )

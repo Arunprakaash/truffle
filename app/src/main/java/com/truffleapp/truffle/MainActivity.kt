@@ -56,7 +56,6 @@ import com.truffleapp.truffle.navigation.NavDestination
 import com.truffleapp.truffle.reminders.BillReminderPrefs
 import com.truffleapp.truffle.reminders.BillReminderScheduler
 import com.truffleapp.truffle.ui.components.AddToGoalSheet
-import com.truffleapp.truffle.ui.components.BudgetConfigSheet
 import com.truffleapp.truffle.ui.components.AddTransactionSheet
 import com.truffleapp.truffle.ui.components.AddTypeSheet
 import com.truffleapp.truffle.ui.components.BillSheet
@@ -132,7 +131,6 @@ private fun LedgerApp() {
     var accountToEdit      by remember { mutableStateOf<Account?>(null) }
     var showClearAllConfirm by remember { mutableStateOf(false) }
     var pendingImport by remember { mutableStateOf<PendingImport?>(null) }
-    var showBudgetConfig by remember { mutableStateOf(false) }
 
     val appContext = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -212,10 +210,10 @@ private fun LedgerApp() {
                 onBill               = { selectedBill = it },
                 onNav                = { currentDestination = it },
                 onAdd                = { showAddPicker = true },
-                onConfigureBudgets   = { showBudgetConfig = true },
             )
             NavDestination.Accounts -> AccountsScreen(
                 data                    = data,
+                onBackToToday           = { currentDestination = NavDestination.Today },
                 onEditAccount           = { accountToEdit = it },
                 onExportBackup          = { shareLedgerBackup(appContext, viewModel.exportBackupJson()) },
                 onImportBackup          = { importBackupLauncher.launch("*/*") },
@@ -242,8 +240,16 @@ private fun LedgerApp() {
                     }
                 },
             )
-            NavDestination.Flow     -> FlowScreen(data = data, onTx = { selectedTx = it })
-            NavDestination.Goals    -> GoalsScreen(data = data, onAddToGoal = { selectedGoal = it })
+            NavDestination.Flow     -> FlowScreen(
+                data = data,
+                onTx = { selectedTx = it },
+                onBackToToday = { currentDestination = NavDestination.Today },
+            )
+            NavDestination.Goals    -> GoalsScreen(
+                data = data,
+                onAddToGoal = { selectedGoal = it },
+                onBackToToday = { currentDestination = NavDestination.Today },
+            )
         }
 
         BottomNavBar(
@@ -261,6 +267,7 @@ private fun LedgerApp() {
         TxDetailSheet(
             tx = tx,
             currencyCode = data.currencyForAccountName(tx.account),
+            transactions = data.transactions,
             onDismiss = { selectedTx = null },
             onRecategorize = { txId, cat -> viewModel.recategorize(txId, cat) },
             onRemove = { txId ->
@@ -319,17 +326,6 @@ private fun LedgerApp() {
                         Toast.LENGTH_LONG,
                     ).show()
                 }
-            },
-        )
-    }
-
-    if (showBudgetConfig && data.budgets.isNotEmpty()) {
-        BudgetConfigSheet(
-            data = data,
-            onDismiss = { showBudgetConfig = false },
-            onSave = { limits ->
-                viewModel.updateBudgetLimits(limits)
-                showBudgetConfig = false
             },
         )
     }

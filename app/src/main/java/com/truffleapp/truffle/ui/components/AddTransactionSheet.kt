@@ -5,8 +5,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -33,7 +31,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForwardIos
 import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -56,6 +53,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -111,12 +109,6 @@ fun AddTransactionSheet(
     var showCategoryPicker by remember { mutableStateOf(false) }
     var capturedLocation by remember { mutableStateOf<Location?>(null) }
 
-    val locationPermLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        if (granted) capturedLocation = getBestLastLocation(context)
-    }
-
     val ledgerDc = normalizeLedgerCurrencyCode(displayCurrency)
     val amountRowCurrency = remember(ledgerDc, accountIdx, accounts) {
         accounts.getOrNull(accountIdx)?.let { normalizeLedgerCurrencyCode(it.currency) } ?: ledgerDc
@@ -136,8 +128,6 @@ fun AddTransactionSheet(
             == PackageManager.PERMISSION_GRANTED
         ) {
             capturedLocation = getBestLastLocation(context)
-        } else {
-            locationPermLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
     }
 
@@ -451,31 +441,7 @@ fun AddTransactionSheet(
                 )
             }
 
-            Spacer(Modifier.height(8.dp))
-
-            // ── Location indicator ────────────────────────────────────────
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 16.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.LocationOn,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(12.dp)
-                        .padding(end = 0.dp),
-                    tint = if (capturedLocation != null) ColorInk else ColorTextTertiary,
-                )
-                Spacer(Modifier.width(4.dp))
-                Text(
-                    text = if (capturedLocation != null) "Location captured" else "No location",
-                    style = TextStyle(
-                        fontFamily = SansFamily,
-                        fontSize = 11.sp,
-                        color = if (capturedLocation != null) ColorInk else ColorTextTertiary,
-                    ),
-                )
-            }
+            Spacer(Modifier.height(16.dp))
 
             // ── Add button ────────────────────────────────────────────────
             Button(
@@ -574,8 +540,11 @@ internal fun FormTextField(
                             style = TextStyle(
                                 fontFamily = SerifFamily,
                                 fontStyle = FontStyle.Italic,
-                                fontSize = 16.sp,
+                                fontSize = 17.sp,
                                 color = ColorTextSerifMuted,
+                                lineHeight = (17 * 1.55).sp,
+                                fontFeatureSettings = "\"tnum\" on, \"lnum\" on",
+                                platformStyle = PlatformTextStyle(includeFontPadding = false)
                             ),
                         )
                     }

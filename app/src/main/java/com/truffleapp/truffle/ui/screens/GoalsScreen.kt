@@ -37,13 +37,17 @@ import com.truffleapp.truffle.data.Goal
 import com.truffleapp.truffle.data.LedgerData
 import com.truffleapp.truffle.data.SampleData
 import com.truffleapp.truffle.data.primaryAmountCurrency
+import com.truffleapp.truffle.navigation.NavDestination
 import com.truffleapp.truffle.ui.components.BottomNavContentPadding
+import com.truffleapp.truffle.ui.components.ScreenTopBar
 import com.truffleapp.truffle.ui.components.MoneyText
 import com.truffleapp.truffle.ui.components.ProgressBar
 import com.truffleapp.truffle.ui.components.RingProgress
+import com.truffleapp.truffle.ui.components.goalRingIcon
 import com.truffleapp.truffle.ui.components.fmt
 import com.truffleapp.truffle.ui.theme.ColorFeature
 import com.truffleapp.truffle.ui.theme.ColorInk
+import com.truffleapp.truffle.ui.theme.ColorMuted
 import com.truffleapp.truffle.ui.theme.ColorPage
 import com.truffleapp.truffle.ui.theme.ColorSurface
 import com.truffleapp.truffle.ui.theme.ColorTextSecondary
@@ -62,25 +66,36 @@ fun GoalsScreen(
     data: LedgerData,
     modifier: Modifier = Modifier,
     onAddToGoal: (Goal) -> Unit = {},
+    onBackToToday: () -> Unit = {},
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .statusBarsPadding()
-            .padding(horizontal = 18.dp)
-            .padding(top = 12.dp, bottom = BottomNavContentPadding),
+            .statusBarsPadding(),
     ) {
+        ScreenTopBar(
+            title = NavDestination.Goals.label,
+            showBack = true,
+            onBackToToday = onBackToToday,
+            modifier = Modifier.padding(horizontal = 18.dp),
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 18.dp)
+                .padding(top = 4.dp, bottom = BottomNavContentPadding),
+        ) {
         // ── Intro + list ──────────────────────────────────────────────────
         if (data.goals.isEmpty()) {
             Text(
                 text = "Nothing saved toward yet.",
                 style = TextStyle(
                     fontFamily = SerifFamily,
-                    fontStyle  = FontStyle.Italic,
-                    fontSize   = 16.sp,
-                    color      = ColorTextSerifBody,
-                    lineHeight = (16 * 1.55).sp,
+                    fontStyle = FontStyle.Italic,
+                    fontSize = 17.sp,
+                    color = ColorTextSerifBody,
+                    lineHeight = (17 * 1.55).sp,
                 ),
                 modifier = Modifier
                     .padding(horizontal = 4.dp)
@@ -92,10 +107,10 @@ fun GoalsScreen(
                 text = "Quiet things you are saving toward.",
                 style = TextStyle(
                     fontFamily = SerifFamily,
-                    fontStyle  = FontStyle.Italic,
-                    fontSize   = 16.sp,
-                    color      = ColorTextSerifBody,
-                    lineHeight = (16 * 1.55).sp,
+                    fontStyle = FontStyle.Italic,
+                    fontSize = 17.sp,
+                    color = ColorTextSerifBody,
+                    lineHeight = (17 * 1.55).sp,
                 ),
                 modifier = Modifier
                     .padding(horizontal = 4.dp)
@@ -110,6 +125,7 @@ fun GoalsScreen(
                     )
                 }
             }
+        }
         }
     }
 }
@@ -136,7 +152,7 @@ private fun GoalsEmptyHintCard() {
 // Reference spec (screens-detail.jsx):
 //   background   ColorFeature if complete, ColorSurface otherwise
 //   padding      18dp vertical / 20dp horizontal
-//   top row      RingProgress 54dp 1.5stroke  +  title 20sp  +  note italic 13sp tertiary
+//   top row      RingProgress 54dp + goalRingIcon(id) center  +  title 20sp  +  note
 //   middle row   saved $22sp  "of $target" 13sp tertiary  |  Add pill button (ink bg)
 //   bottom       ProgressBar 2dp
 @Composable
@@ -154,7 +170,18 @@ private fun GoalCard(goal: Goal, displayCurrency: String, onAdd: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(14.dp),
             verticalAlignment   = Alignment.CenterVertically,
         ) {
-            RingProgress(value = goal.progress, size = 54.dp, strokeWidth = 1.5.dp)
+            Box(
+                modifier = Modifier.size(54.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                RingProgress(value = goal.progress, size = 54.dp, strokeWidth = 1.5.dp)
+                Icon(
+                    imageVector = goalRingIcon(goal.id),
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                    tint = ColorMuted,
+                )
+            }
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -171,7 +198,7 @@ private fun GoalCard(goal: Goal, displayCurrency: String, onAdd: () -> Unit) {
                     style    = TextStyle(
                         fontFamily = SerifFamily,
                         fontStyle  = FontStyle.Italic,
-                        fontSize   = 13.sp,
+                        fontSize   = 17.sp,
                         color      = ColorTextSerifMuted,
                     ),
                     modifier = Modifier.padding(top = 2.dp),
@@ -209,7 +236,7 @@ private fun GoalCard(goal: Goal, displayCurrency: String, onAdd: () -> Unit) {
                             append(fmt(goal.target, currencyCode = displayCurrency))
                         }
                     },
-                    style = TextStyle(fontSize = 13.sp, color = ColorTextSerifMuted),
+                    style = TextStyle(fontSize = 17.sp, color = ColorTextSerifMuted),
                 )
             }
 

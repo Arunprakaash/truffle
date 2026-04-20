@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truffleapp.truffle.data.Bill
@@ -30,6 +31,7 @@ import com.truffleapp.truffle.data.pickerLabel
 import com.truffleapp.truffle.ui.theme.ColorInk
 import com.truffleapp.truffle.ui.theme.ColorPage
 import com.truffleapp.truffle.ui.theme.ColorSurface
+import com.truffleapp.truffle.ui.theme.ColorTextSerifBody
 import com.truffleapp.truffle.ui.theme.ColorTextSerifMuted
 import com.truffleapp.truffle.ui.theme.SerifFamily
 
@@ -79,6 +81,7 @@ fun BillSheet(
                 style = TextStyle(
                     fontFamily = SerifFamily,
                     fontSize = 24.sp,
+                    fontWeight = FontWeight.SemiBold,
                     color = ColorInk,
                 ),
             )
@@ -88,7 +91,7 @@ fun BillSheet(
             MoneyText(
                 amount = -bill.amount,
                 currencyCode = currencyCode,
-                size = 36.sp,
+                size = 44.sp,
                 cents = true,
             )
 
@@ -99,9 +102,9 @@ fun BillSheet(
                 style = TextStyle(
                     fontFamily = SerifFamily,
                     fontStyle = FontStyle.Italic,
-                    fontSize = 14.sp,
+                    fontSize = 17.sp,
                     color = ColorTextSerifMuted,
-                    lineHeight = (14 * 1.55).sp,
+                    lineHeight = (17 * 1.55).sp,
                 ),
             )
 

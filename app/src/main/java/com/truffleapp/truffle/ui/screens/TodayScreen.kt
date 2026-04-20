@@ -35,7 +35,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import com.truffleapp.truffle.data.Budget
 import com.truffleapp.truffle.data.LedgerData
 import com.truffleapp.truffle.data.SampleData
 import com.truffleapp.truffle.data.ledgerWithDerivedBudgetsAndWeekly
@@ -52,14 +51,13 @@ import com.truffleapp.truffle.ui.components.Caps
 import com.truffleapp.truffle.ui.components.Hairline
 import com.truffleapp.truffle.ui.components.IntentionCard
 import com.truffleapp.truffle.ui.components.MoneyText
-import com.truffleapp.truffle.ui.components.ProgressBar
+import com.truffleapp.truffle.ui.components.ScreenTopBar
 import com.truffleapp.truffle.ui.components.SectionHeader
+import com.truffleapp.truffle.ui.components.SurfaceCircleIconButton
 import com.truffleapp.truffle.ui.components.TxRow
 import com.truffleapp.truffle.ui.components.fmt
-import com.truffleapp.truffle.ui.theme.ColorBorderPrimary
 import com.truffleapp.truffle.ui.theme.ColorFeature
 import com.truffleapp.truffle.ui.theme.ColorInk
-import com.truffleapp.truffle.ui.theme.ColorMuted
 import com.truffleapp.truffle.ui.theme.ColorSurface
 import com.truffleapp.truffle.ui.theme.ColorTextPrimary
 import com.truffleapp.truffle.ui.theme.ColorTextSecondary
@@ -72,14 +70,8 @@ import com.truffleapp.truffle.ui.theme.StillwaterTheme
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material3.Icon
 import androidx.compose.ui.graphics.Canvas
 import androidx.compose.foundation.Canvas
 
@@ -99,7 +91,6 @@ fun TodayScreen(
     onBill: (Bill) -> Unit = {},
     onNav: (NavDestination) -> Unit = {},
     onAdd: () -> Unit = {},
-    onConfigureBudgets: () -> Unit = {},
 ) {
     val topTx      = remember(data) { data.transactions.take(4) }
     val upcoming   = remember(data) {
@@ -111,12 +102,20 @@ fun TodayScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .statusBarsPadding()                   // push content below status bar
-            // screen-level padding: 12 top / 18 sides / bottom clears floating nav (see BottomNavContentPadding)
-            .padding(horizontal = 18.dp)
-            .padding(top = 12.dp, bottom = BottomNavContentPadding),
+            .statusBarsPadding(),
     ) {
+        ScreenTopBar(
+            title = "",
+            showBack = false,
+            modifier = Modifier.padding(horizontal = 18.dp),
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 18.dp)
+                .padding(top = 4.dp, bottom = BottomNavContentPadding),
+        ) {
         // ── Greeting ──────────────────────────────────────────────────────
         GreetingSection(
             firstName = data.user.firstName,
@@ -150,25 +149,6 @@ fun TodayScreen(
 
         Spacer(Modifier.height(14.dp))
 
-        if (data.transactions.isNotEmpty() && data.budgets.isNotEmpty()) {
-            SectionHeader(
-                title     = "Budgets",
-                modifier  = Modifier.padding(bottom = 8.dp),
-                onMore    = onConfigureBudgets,
-                moreLabel = "Configure",
-            )
-            ListCard(padding = 6) {
-                data.budgets.forEachIndexed { i, budget ->
-                    BudgetTodayRow(
-                        budget          = budget,
-                        isLast          = i == data.budgets.lastIndex,
-                        displayCurrency = data.primaryAmountCurrency(),
-                    )
-                }
-            }
-            Spacer(Modifier.height(14.dp))
-        }
-
         // ── Recent transactions ───────────────────────────────────────────
         SectionHeader(
             title = "Recent",
@@ -197,7 +177,7 @@ fun TodayScreen(
             title = "Coming up",
             modifier = Modifier.padding(bottom = 8.dp),
         )
-        ListCard(padding = 4) {
+        ListCard(padding = 6) {
             if (upcoming.isEmpty()) {
                 EmptyListHint(text = "No bills coming up. They will land here when you add them.")
             } else {
@@ -210,6 +190,7 @@ fun TodayScreen(
                     )
                 }
             }
+        }
         }
     }
 }
@@ -262,26 +243,11 @@ private fun GreetingSection(
             )
         }
 
-        // + button
-        Box(
-            modifier = Modifier
-                .size(34.dp)
-                .clip(CircleShape)
-                .background(ColorSurface)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClick = onAdd,
-                ),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Add,
-                contentDescription = "Add",
-                modifier = Modifier.size(16.dp),
-                tint = ColorInk,
-            )
-        }
+        SurfaceCircleIconButton(
+            imageVector = Icons.Outlined.Add,
+            contentDescription = "Add",
+            onClick = onAdd,
+        )
     }
 }
 
@@ -308,58 +274,10 @@ private fun NetWorthCard(data: LedgerData) {
 
         MoneyText(amount = data.netWorth, size = 40.sp, currencyCode = data.primaryAmountCurrency())
 
-        val deltaLine = remember(data.netWorth, data.netWorthLastMonth, data.netWorthDelta) {
-            when {
-                nearlyZero(data.netWorth) &&
-                    nearlyZero(data.netWorthLastMonth) &&
-                    nearlyZero(data.netWorthDelta) ->
-                    buildAnnotatedString {
-                        withStyle(SpanStyle(fontFamily = SerifFamily, fontStyle = FontStyle.Italic)) {
-                            append("You\u2019re starting here. This number will grow as your balances do.")
-                        }
-                    }
-                nearlyZero(data.netWorthDelta) ->
-                    buildAnnotatedString {
-                        withStyle(SpanStyle(fontFamily = SerifFamily, fontStyle = FontStyle.Italic)) {
-                            append("Unchanged from last month.")
-                        }
-                    }
-                else -> {
-                    val moreOrLess = if (data.netWorthDelta >= 0) "a little more" else "a little less"
-                    buildAnnotatedString {
-                        withStyle(SpanStyle(fontFamily = SerifFamily, fontStyle = FontStyle.Italic)) {
-                            append(moreOrLess)
-                        }
-                        withStyle(SpanStyle(fontFamily = SansFamily)) {
-                            append(" than last month · ")
-                        }
-                        withStyle(
-                            SpanStyle(
-                                fontFamily = SerifFamily,
-                                fontWeight = FontWeight.SemiBold,
-                                fontFeatureSettings = "\"tnum\" on, \"lnum\" on",
-                            )
-                        ) {
-                            append(fmt(data.netWorthDelta, currencyCode = data.primaryAmountCurrency(), sign = true))
-                        }
-                    }
-                }
-            }
-        }
-
-        Text(
-            text = deltaLine,
-            style = TextStyle(
-                fontSize = 12.sp,
-                color = ColorTextSerifBody,
-            ),
-            modifier = Modifier.padding(top = 10.dp),
-        )
-
         if (showTrend) {
             MiniTrend(
                 weeklyFlow = data.weeklyFlow,
-                modifier = Modifier.padding(top = 18.dp),
+                modifier = Modifier.padding(top = 10.dp),
             )
         }
     }
@@ -504,53 +422,6 @@ private fun ColumnScope.EmptyListHint(text: String) {
             .fillMaxWidth()
             .padding(horizontal = 14.dp, vertical = 18.dp),
     )
-}
-
-@Composable
-private fun BudgetTodayRow(budget: Budget, isLast: Boolean, displayCurrency: String) {
-    val ratio = if (budget.limit > 0.0) (budget.spent / budget.limit).toFloat() else 0f
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 14.dp, vertical = 12.dp),
-    ) {
-        Row(
-            modifier              = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment     = Alignment.Bottom,
-        ) {
-            Text(
-                text     = budget.label,
-                style    = TextStyle(
-                    fontFamily = SansFamily,
-                    fontWeight = FontWeight.Medium,
-                    fontSize   = 13.sp,
-                    color      = ColorInk,
-                ),
-                modifier = Modifier.weight(1f).padding(end = 8.dp),
-            )
-            Text(
-                text  = "${fmt(budget.spent, currencyCode = displayCurrency)} / ${fmt(budget.limit, currencyCode = displayCurrency)}",
-                style = TextStyle(
-                    fontFamily = SerifFamily,
-                    fontStyle = FontStyle.Normal,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize   = 12.sp,
-                    color      = ColorTextSerifMuted,
-                    fontFeatureSettings = "\"tnum\" on, \"lnum\" on",
-                ),
-            )
-        }
-        Spacer(Modifier.height(8.dp))
-        ProgressBar(
-            value      = ratio.coerceIn(0f, 1f),
-            trackColor = ColorBorderPrimary,
-            fillColor  = if (budget.isOver) ColorInk.copy(alpha = 0.55f) else ColorMuted,
-        )
-    }
-    if (!isLast) {
-        Hairline(modifier = Modifier.padding(horizontal = 14.dp))
-    }
 }
 
 // ── ListCard ───────────────────────────────────────────────────────────────

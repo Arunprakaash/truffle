@@ -15,23 +15,36 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.remember
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.automirrored.outlined.TrendingUp
 import androidx.compose.material.icons.outlined.AccountBalance
 import androidx.compose.material.icons.outlined.ArrowUpward
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material.icons.outlined.CreditCard
 import androidx.compose.material.icons.outlined.DirectionsCar
+import androidx.compose.material.icons.outlined.EmojiEvents
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.material.icons.outlined.Flight
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.LocalCafe
+import androidx.compose.material.icons.outlined.Park
+import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.outlined.Spa
+import androidx.compose.material.icons.outlined.StarBorder
+import androidx.compose.material.icons.outlined.TrackChanges
+import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -98,6 +111,42 @@ fun Caps(
     )
 }
 
+// ── SurfaceCircleIconButton ────────────────────────────────────────────────
+// Circular surface icon tap target — back, overflow (⋯), Today +, etc. No ripple.
+@Composable
+fun SurfaceCircleIconButton(
+    imageVector: ImageVector,
+    contentDescription: String?,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    size: Dp = 34.dp,
+    iconSize: Dp = 16.dp,
+    containerColor: Color = ColorSurface,
+    iconTint: Color = ColorInk,
+    enabled: Boolean = true,
+) {
+    Box(
+        modifier = modifier
+            .size(size)
+            .clip(CircleShape)
+            .background(containerColor)
+            .clickable(
+                enabled = enabled,
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = imageVector,
+            contentDescription = contentDescription,
+            modifier = Modifier.size(iconSize),
+            tint = if (enabled) iconTint else ColorTextTertiary,
+        )
+    }
+}
+
 // ── IconCircle ────────────────────────────────────────────────────────────
 // Circular container used in transaction / account / bill rows.
 // Default matches reference: 34dp circle, 14dp icon, feature-2 bg.
@@ -145,9 +194,16 @@ fun SectionHeader(
         Caps(text = title)
         Spacer(modifier = Modifier.weight(1f))
         if (onMore != null) {
-            androidx.compose.material3.TextButton(
-                onClick = onMore,
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onMore,
+                    )
+                    .padding(horizontal = 2.dp, vertical = 1.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = moreLabel,
@@ -163,6 +219,35 @@ fun SectionHeader(
                     tint = ColorTextTertiary,
                 )
             }
+        }
+    }
+}
+
+// ── ScreenTopBar ──────────────────────────────────────────────────────────
+// Main-tab screens: circular back to Today + Caps page title (reference headers).
+@Composable
+fun ScreenTopBar(
+    title: String,
+    modifier: Modifier = Modifier,
+    showBack: Boolean = true,
+    onBackToToday: () -> Unit = {},
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp, bottom = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (showBack) {
+            SurfaceCircleIconButton(
+                imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                contentDescription = "Back to Today",
+                onClick = onBackToToday,
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+        }
+        if (title.isNotBlank()) {
+            Caps(text = title)
         }
     }
 }
@@ -187,6 +272,34 @@ fun accountIcon(kind: AccountKind): ImageVector = when (kind) {
     AccountKind.Cash   -> Icons.Outlined.AccountBalance
     AccountKind.Invest -> Icons.AutoMirrored.Outlined.TrendingUp
     AccountKind.Credit -> Icons.Outlined.CreditCard
+}
+
+private val GoalRingIconPool: List<ImageVector> = listOf(
+    Icons.Outlined.TrackChanges,
+    Icons.Outlined.Flag,
+    Icons.Outlined.StarBorder,
+    Icons.Outlined.EmojiEvents,
+    Icons.Outlined.Savings,
+    Icons.Outlined.Home,
+    Icons.Outlined.Flight,
+    Icons.Outlined.Spa,
+    Icons.Outlined.CardGiftcard,
+    Icons.Outlined.LocalCafe,
+    Icons.Outlined.DirectionsCar,
+    Icons.Outlined.FavoriteBorder,
+    Icons.Outlined.Lightbulb,
+    Icons.Outlined.Park,
+    Icons.Outlined.VolunteerActivism,
+    Icons.Outlined.AutoAwesome,
+    Icons.Outlined.ShoppingCart,
+    Icons.Outlined.AccountBalance,
+)
+
+fun goalRingIcon(goalId: String): ImageVector {
+    val h = goalId.hashCode()
+    val n = GoalRingIconPool.size
+    val idx = ((h % n) + n) % n
+    return GoalRingIconPool[idx]
 }
 
 // ── RingProgress ──────────────────────────────────────────────────────────

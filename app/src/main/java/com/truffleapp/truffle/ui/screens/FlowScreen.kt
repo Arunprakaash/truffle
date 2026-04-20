@@ -43,9 +43,11 @@ import com.truffleapp.truffle.data.SampleData
 import com.truffleapp.truffle.data.Transaction
 import com.truffleapp.truffle.data.currencyForAccountName
 import com.truffleapp.truffle.data.primaryAmountCurrency
+import com.truffleapp.truffle.navigation.NavDestination
 import com.truffleapp.truffle.ui.components.BottomNavContentPadding
 import com.truffleapp.truffle.ui.components.Caps
 import com.truffleapp.truffle.ui.components.MoneyText
+import com.truffleapp.truffle.ui.components.ScreenTopBar
 import com.truffleapp.truffle.ui.components.TxRow
 import com.truffleapp.truffle.ui.components.fmt
 import com.truffleapp.truffle.ui.theme.ColorFeature2
@@ -68,6 +70,7 @@ fun FlowScreen(
     data: LedgerData,
     modifier: Modifier = Modifier,
     onTx: (Transaction) -> Unit = {},
+    onBackToToday: () -> Unit = {},
 ) {
     var range  by remember { mutableStateOf("week") }
     var filter by remember { mutableStateOf("all") }
@@ -102,16 +105,26 @@ fun FlowScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .statusBarsPadding()
-            .padding(horizontal = 18.dp)
-            .padding(top = 12.dp, bottom = BottomNavContentPadding),
+            .statusBarsPadding(),
     ) {
+        ScreenTopBar(
+            title = NavDestination.Flow.label,
+            showBack = true,
+            onBackToToday = onBackToToday,
+            modifier = Modifier.padding(horizontal = 18.dp),
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 18.dp)
+                .padding(top = 4.dp, bottom = BottomNavContentPadding),
+        ) {
         // ── Summary header ─────────────────────────────────────────────────
         Column(
             modifier = Modifier
                 .padding(horizontal = 4.dp)
-                .padding(top = 8.dp, bottom = 4.dp),
+                .padding(top = 4.dp, bottom = 4.dp),
         ) {
             Text(
                 text = when (range) {
@@ -121,10 +134,10 @@ fun FlowScreen(
                 },
                 style = TextStyle(
                     fontFamily = SerifFamily,
-                    fontStyle  = FontStyle.Italic,
-                    fontSize   = 16.sp,
-                    color      = ColorTextSerifBody,
-                    lineHeight = (16 * 1.5).sp,
+                    fontStyle = FontStyle.Italic,
+                    fontSize = 17.sp,
+                    color = ColorTextSerifBody,
+                    lineHeight = (17 * 1.55).sp,
                 ),
                 modifier = Modifier.padding(bottom = 6.dp),
             )
@@ -133,7 +146,7 @@ fun FlowScreen(
             MoneyText(
                 amount = totalOut,
                 currencyCode = data.primaryAmountCurrency(),
-                size = 32.sp,
+                size = 36.sp,
                 cents = true,
             )
 
@@ -152,7 +165,7 @@ fun FlowScreen(
                         append(fmt(totalIn, currencyCode = data.primaryAmountCurrency(), cents = true))
                     }
                 },
-                style    = TextStyle(fontSize = 12.sp, color = ColorTextSerifMuted),
+                style    = TextStyle(fontSize = 14.sp, color = ColorTextSerifMuted),
                 modifier = Modifier.padding(top = 4.dp),
             )
         }
@@ -212,6 +225,7 @@ fun FlowScreen(
                     }
                 }
             }
+        }
         }
     }
 }
