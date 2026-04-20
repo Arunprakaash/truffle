@@ -80,6 +80,7 @@ fun TxDetailSheet(
     onRemove: (txId: String) -> Unit = {},
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val haptics = rememberHaptics()
     var currentCategory by remember { mutableStateOf(tx.category) }
     var showCats by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
@@ -213,6 +214,7 @@ fun TxDetailSheet(
                                     interactionSource = remember { MutableInteractionSource() },
                                     indication = null,
                                 ) {
+                                    haptics.tick()
                                     currentCategory = key
                                     onRecategorize(tx.id, key)
                                     showCats = false
@@ -359,6 +361,7 @@ fun TxDetailSheet(
             confirmButton = {
                 TextButton(
                     onClick = {
+                        haptics.heavyClick()
                         showDeleteConfirm = false
                         onRemove(tx.id)
                         onDismiss()

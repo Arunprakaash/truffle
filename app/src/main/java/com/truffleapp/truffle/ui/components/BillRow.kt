@@ -66,8 +66,8 @@ fun BillRow(
                     text = bill.daysUntilDue().coerceAtLeast(0).toString(),
                     style = TextStyle(
                         fontFamily = SerifFamily,
-                        fontSize = 15.sp,
-                        color = ColorTextSerifMuted,
+                        fontSize = 18.sp,
+                        color = ColorInk,
                         fontFeatureSettings = "\"tnum\" on",
                     ),
                 )

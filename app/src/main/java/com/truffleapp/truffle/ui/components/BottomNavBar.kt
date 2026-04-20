@@ -36,6 +36,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -74,6 +75,7 @@ fun BottomNavBar(
     modifier: Modifier = Modifier,
 ) {
     val selectedIndex = navItems.indexOfFirst { it.destination == current }
+    val haptics = rememberHaptics()
 
     // Animates as a float so the pill slides continuously between positions
     val animatedIndex by animateFloatAsState(
@@ -117,7 +119,12 @@ fun BottomNavBar(
             NavBarItem(
                 item     = item,
                 isActive = current == item.destination,
-                onClick  = { onNav(item.destination) },
+                onClick  = {
+                    if (current != item.destination) {
+                        haptics.tick()
+                        onNav(item.destination)
+                    }
+                },
                 modifier = Modifier.weight(1f),
             )
         }
@@ -144,7 +151,7 @@ private fun NavBarItem(
                 indication        = null,
                 onClick           = onClick,
             )
-            .padding(horizontal = 14.dp, vertical = 7.dp),
+            .padding(horizontal = 10.dp, vertical = 7.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(3.dp),
     ) {
@@ -159,6 +166,9 @@ private fun NavBarItem(
             style     = StillwaterType.navLabel,
             color     = color,
             textAlign = TextAlign.Center,
+            maxLines  = 1,
+            softWrap  = false,
+            overflow  = TextOverflow.Visible,
         )
     }
 }

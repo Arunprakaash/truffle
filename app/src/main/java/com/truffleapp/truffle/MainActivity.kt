@@ -66,6 +66,7 @@ import com.truffleapp.truffle.ui.components.NewAccountSheet
 import com.truffleapp.truffle.ui.components.NewBillSheet
 import com.truffleapp.truffle.ui.components.NewGoalSheet
 import com.truffleapp.truffle.ui.components.TxDetailSheet
+import com.truffleapp.truffle.ui.components.rememberHaptics
 import com.truffleapp.truffle.ui.screens.AccountsScreen
 import com.truffleapp.truffle.ui.screens.FlowScreen
 import com.truffleapp.truffle.ui.screens.GoalsScreen
@@ -106,6 +107,7 @@ class MainActivity : ComponentActivity() {
 private fun LedgerApp() {
     val viewModel: LedgerViewModel = viewModel()
     val data = viewModel.data
+    val haptics = rememberHaptics()
 
     if (!viewModel.hasOnboarded) {
         OnboardingScreen(
@@ -275,6 +277,7 @@ private fun LedgerApp() {
             onDismiss = { selectedBill = null },
             onMarkPaid = { billId ->
                 if (viewModel.markBillPaid(billId)) {
+                    haptics.click()
                     selectedBill = null
                 } else {
                     Toast.makeText(
@@ -307,6 +310,7 @@ private fun LedgerApp() {
             onConfirm = { goalId, amount, fromId ->
                 val ok = viewModel.addToGoal(goalId, amount, fromId)
                 if (ok) {
+                    haptics.click()
                     selectedGoal = null
                 } else {
                     Toast.makeText(
@@ -350,6 +354,7 @@ private fun LedgerApp() {
             onAdd     = { tx ->
                 val ok = viewModel.addTransaction(tx)
                 if (ok) {
+                    haptics.click()
                     showAddTransaction = false
                 } else {
                     Toast.makeText(

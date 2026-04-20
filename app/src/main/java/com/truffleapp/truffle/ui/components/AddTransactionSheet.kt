@@ -100,6 +100,7 @@ fun AddTransactionSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val focusRequester = remember { FocusRequester() }
     val context = LocalContext.current
+    val haptics = rememberHaptics()
 
     var amountText       by remember { mutableStateOf("") }
     var isExpense        by remember { mutableStateOf(true) }
@@ -186,8 +187,11 @@ fun AddTransactionSheet(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null,
                             ) {
-                                isExpense = expense
-                                if (!expense) showCategoryPicker = false
+                                if (isExpense != expense) {
+                                    haptics.tick()
+                                    isExpense = expense
+                                    if (!expense) showCategoryPicker = false
+                                }
                             }
                             .padding(vertical = 8.dp),
                         contentAlignment = Alignment.Center,
@@ -356,6 +360,7 @@ fun AddTransactionSheet(
                                             interactionSource = remember { MutableInteractionSource() },
                                             indication = null,
                                         ) {
+                                            haptics.tick()
                                             category = key
                                             showCategoryPicker = false
                                         }
