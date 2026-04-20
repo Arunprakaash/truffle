@@ -8,11 +8,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -280,28 +282,44 @@ fun TxDetailSheet(
             if (tx.lat != null && tx.lng != null) {
                 Spacer(Modifier.height(12.dp))
                 val context = LocalContext.current
-                Box(
+                val zoom = 16
+                val tile = latLngToTileInfo(tx.lat, tx.lng, zoom)
+
+                BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(160.dp)
                         .clip(RoundedCornerShape(14.dp)),
                 ) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(context)
-                            .data(osmTileUrl(tx.lat, tx.lng))
-                            .addHeader("User-Agent", "Truffle/1.1 personal-finance-app")
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = "Transaction location",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                    // Pin dot at center
+                    val tileSize = maxWidth / 3
+
+                    // 3×3 tile grid — centre tile contains the location
+                    Column {
+                        for (dy in -1..1) {
+                            Row {
+                                for (dx in -1..1) {
+                                    AsyncImage(
+                                        model = ImageRequest.Builder(context)
+                                            .data("https://tile.openstreetmap.org/$zoom/${tile.x + dx}/${tile.y + dy}.png")
+                                            .addHeader("User-Agent", "Truffle/1.2 personal-finance-app")
+                                            .crossfade(false)
+                                            .build(),
+                                        contentDescription = null,
+                                        contentScale = ContentScale.FillBounds,
+                                        modifier = Modifier.size(tileSize),
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Pin at exact sub-tile position
                     Canvas(modifier = Modifier.fillMaxSize()) {
-                        val cx = size.width / 2f
-                        val cy = size.height / 2f
-                        drawCircle(color = Color.White, radius = 10.dp.toPx(), center = androidx.compose.ui.geometry.Offset(cx, cy))
-                        drawCircle(color = Color(0xFF2E2A24), radius = 6.dp.toPx(), center = androidx.compose.ui.geometry.Offset(cx, cy))
+                        val pinX = (tileSize * (1 + tile.fracX)).toPx()
+                        val pinY = (tileSize * (1 + tile.fracY)).toPx()
+                        val center = androidx.compose.ui.geometry.Offset(pinX, pinY)
+                        drawCircle(color = Color.White, radius = 10.dp.toPx(), center = center)
+                        drawCircle(color = Color(0xFF2E2A24), radius = 6.dp.toPx(), center = center)
                     }
                 }
             }
@@ -414,10 +432,17 @@ private fun DetailRow(
     Hairline()
 }
 
-private fun osmTileUrl(lat: Double, lng: Double, zoom: Int = 15): String {
+private data class TileInfo(val x: Int, val y: Int, val fracX: Float, val fracY: Float)
+
+private fun latLngToTileInfo(lat: Double, lng: Double, zoom: Int): TileInfo {
     val n = Math.pow(2.0, zoom.toDouble())
-    val x = ((lng + 180) / 360 * n).toInt()
+    val xf = (lng + 180) / 360 * n
     val latRad = Math.toRadians(lat)
-    val y = ((1 - ln(tan(latRad) + 1.0 / cos(latRad)) / Math.PI) / 2 * n).toInt()
-    return "https://tile.openstreetmap.org/$zoom/$x/$y.png"
+    val yf = (1 - ln(tan(latRad) + 1.0 / cos(latRad)) / Math.PI) / 2 * n
+    return TileInfo(
+        x = xf.toInt(),
+        y = yf.toInt(),
+        fracX = (xf - xf.toInt()).toFloat(),
+        fracY = (yf - yf.toInt()).toFloat(),
+    )
 }
