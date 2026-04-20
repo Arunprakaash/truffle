@@ -17,6 +17,9 @@
 .cxx
 local.properties
 
+# Kotlin compiler cache
+.kotlin/
+
 # Signing keys and release artifacts (never commit)
 *.jks
 *.keystore
