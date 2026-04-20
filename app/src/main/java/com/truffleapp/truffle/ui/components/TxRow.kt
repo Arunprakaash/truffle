@@ -83,7 +83,7 @@ fun TxRow(
                     style = TextStyle(
                         fontFamily = SerifFamily,
                         fontStyle = FontStyle.Italic,
-                        fontSize = 11.5.sp,
+                        fontSize = 12.sp,
                         color = ColorTextSerifMuted,
                     ),
                     maxLines = 1,
@@ -99,7 +99,7 @@ fun TxRow(
                 MoneyText(
                     amount = tx.amount,
                     currencyCode = currencyCode,
-                    size = 15.sp,
+                    size = 14.sp,
                     cents = true,
                     sign = true,
                     textAlign = TextAlign.End,

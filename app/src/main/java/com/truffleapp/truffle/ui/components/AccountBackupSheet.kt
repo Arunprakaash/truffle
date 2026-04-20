@@ -15,9 +15,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.FileDownload
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.UploadFile
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -28,8 +30,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.truffleapp.truffle.R
 import com.truffleapp.truffle.data.normalizeLedgerCurrencyCode
 import com.truffleapp.truffle.ui.theme.ColorBorderTertiary
 import com.truffleapp.truffle.ui.theme.ColorFeature2
@@ -43,6 +47,8 @@ import com.truffleapp.truffle.ui.theme.SerifFamily
 fun AccountBackupSheet(
     displayCurrency: String,
     onDisplayCurrencyChange: (String) -> Unit,
+    billRemindersEnabled: Boolean,
+    onBillRemindersChange: (Boolean) -> Unit,
     onDismiss: () -> Unit,
     onImport: () -> Unit,
     onExport: () -> Unit,
@@ -94,6 +100,46 @@ fun AccountBackupSheet(
                 label = "Default display currency",
                 modifier = Modifier.padding(bottom = 14.dp),
             )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconCircle(
+                    imageVector = Icons.Outlined.Notifications,
+                    size        = 38.dp,
+                    iconSize    = 16.dp,
+                    background  = ColorFeature2,
+                )
+                Spacer(Modifier.width(14.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.bill_reminders_switch_title),
+                        style = TextStyle(
+                            fontFamily = SerifFamily,
+                            fontSize   = 18.sp,
+                            color      = ColorInk,
+                        ),
+                    )
+                    Text(
+                        text = stringResource(R.string.bill_reminders_switch_note),
+                        style = TextStyle(
+                            fontFamily = SerifFamily,
+                            fontStyle  = FontStyle.Italic,
+                            fontSize   = 12.sp,
+                            color      = ColorTextSerifMuted,
+                        ),
+                        modifier = Modifier.padding(top = 2.dp),
+                    )
+                }
+                Switch(
+                    checked = billRemindersEnabled,
+                    onCheckedChange = onBillRemindersChange,
+                )
+            }
+            Hairline()
 
             BackupActionRow(
                 icon  = Icons.Outlined.UploadFile,

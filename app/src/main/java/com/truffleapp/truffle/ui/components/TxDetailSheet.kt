@@ -3,12 +3,15 @@ package com.truffleapp.truffle.ui.components
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -23,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForwardIos
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -39,10 +43,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.truffleapp.truffle.data.CATEGORIES
 import com.truffleapp.truffle.data.RECATEGORIZABLE
 import com.truffleapp.truffle.data.Transaction
@@ -53,9 +61,12 @@ import com.truffleapp.truffle.ui.theme.ColorPage
 import com.truffleapp.truffle.ui.theme.ColorSurface
 import com.truffleapp.truffle.ui.theme.ColorTextSerifBody
 import com.truffleapp.truffle.ui.theme.ColorTextTertiary
-import com.truffleapp.truffle.ui.theme.SansFamily
 import com.truffleapp.truffle.ui.theme.SerifFamily
+import com.truffleapp.truffle.ui.theme.SansFamily
 import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.ln
+import kotlin.math.tan
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -265,20 +276,43 @@ fun TxDetailSheet(
                 )
             }
 
+            // ── Location map ──────────────────────────────────────────────
+            if (tx.lat != null && tx.lng != null) {
+                Spacer(Modifier.height(12.dp))
+                val context = LocalContext.current
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(160.dp)
+                        .clip(RoundedCornerShape(14.dp)),
+                ) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(osmTileUrl(tx.lat, tx.lng))
+                            .addHeader("User-Agent", "Truffle/1.1 personal-finance-app")
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Transaction location",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                    // Pin dot at center
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        val cx = size.width / 2f
+                        val cy = size.height / 2f
+                        drawCircle(color = Color.White, radius = 10.dp.toPx(), center = androidx.compose.ui.geometry.Offset(cx, cy))
+                        drawCircle(color = Color(0xFF2E2A24), radius = 6.dp.toPx(), center = androidx.compose.ui.geometry.Offset(cx, cy))
+                    }
+                }
+            }
+
             Spacer(Modifier.height(20.dp))
 
-            Text(
-                text = "Remove from ledger",
-                style = TextStyle(
-                    fontFamily = SansFamily,
-                    fontSize   = 13.sp,
-                    color        = ColorTextTertiary,
-                ),
-                modifier = Modifier
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication        = null,
-                    ) { showDeleteConfirm = true },
+            SheetButton(
+                icon = Icons.Outlined.DeleteForever,
+                text = "Delete",
+                onClick = { showDeleteConfirm = true },
+                variant = SheetButtonVariant.Destructive,
             )
         }
     }
@@ -378,4 +412,12 @@ private fun DetailRow(
         }
     }
     Hairline()
+}
+
+private fun osmTileUrl(lat: Double, lng: Double, zoom: Int = 15): String {
+    val n = Math.pow(2.0, zoom.toDouble())
+    val x = ((lng + 180) / 360 * n).toInt()
+    val latRad = Math.toRadians(lat)
+    val y = ((1 - ln(tan(latRad) + 1.0 / cos(latRad)) / Math.PI) / 2 * n).toInt()
+    return "https://tile.openstreetmap.org/$zoom/$x/$y.png"
 }

@@ -18,3 +18,6 @@
 
 # Room ships consumer rules; keep the database impl if R8 gets aggressive.
 -keep class com.truffleapp.truffle.data.db.LedgerDatabase_Impl { *; }
+
+# WorkManager lists worker implementations by name.
+-keep class com.truffleapp.truffle.reminders.BillReminderWorker { *; }

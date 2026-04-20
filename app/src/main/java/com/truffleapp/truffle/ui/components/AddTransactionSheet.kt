@@ -1,5 +1,12 @@
 package com.truffleapp.truffle.ui.components
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -26,6 +33,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForwardIos
 import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,12 +55,14 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import com.truffleapp.truffle.data.Account
 import com.truffleapp.truffle.data.AccountKind
 import com.truffleapp.truffle.data.canCoverExpense
@@ -89,6 +99,7 @@ fun AddTransactionSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val focusRequester = remember { FocusRequester() }
+    val context = LocalContext.current
 
     var amountText       by remember { mutableStateOf("") }
     var isExpense        by remember { mutableStateOf(true) }
@@ -97,6 +108,13 @@ fun AddTransactionSheet(
     var note             by remember { mutableStateOf("") }
     var accountIdx       by remember { mutableIntStateOf(0) }
     var showCategoryPicker by remember { mutableStateOf(false) }
+    var capturedLocation by remember { mutableStateOf<Location?>(null) }
+
+    val locationPermLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) capturedLocation = getBestLastLocation(context)
+    }
 
     val ledgerDc = normalizeLedgerCurrencyCode(displayCurrency)
     val amountRowCurrency = remember(ledgerDc, accountIdx, accounts) {
@@ -113,6 +131,13 @@ fun AddTransactionSheet(
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            capturedLocation = getBestLastLocation(context)
+        } else {
+            locationPermLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
     }
 
     ModalBottomSheet(
@@ -234,25 +259,24 @@ fun AddTransactionSheet(
             }
 
             if (isExpense && parsedAmount > 0 && !hasFundsForExpense) {
-                selectedAccount?.let { acc ->
-                    val hint = if (acc.kind == AccountKind.Credit && acc.creditLimit > 0) {
-                        "That would go past the credit limit you set for ${acc.name}."
-                    } else {
-                        "That is more than the balance in ${acc.name}."
-                    }
-                    Text(
-                        text = hint,
-                        style = TextStyle(
-                            fontFamily = SerifFamily,
-                            fontStyle = FontStyle.Italic,
-                            fontSize = 13.sp,
-                            color = ColorTextSerifMuted,
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp),
-                    )
+                val acc = selectedAccount
+                val hint = if (acc.kind == AccountKind.Credit && acc.creditLimit > 0) {
+                    "That would go past the credit limit you set for ${acc.name}."
+                } else {
+                    "That is more than the balance in ${acc.name}."
                 }
+                Text(
+                    text = hint,
+                    style = TextStyle(
+                        fontFamily = SerifFamily,
+                        fontStyle = FontStyle.Italic,
+                        fontSize = 13.sp,
+                        color = ColorTextSerifMuted,
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                )
             }
 
             // ── Merchant ──────────────────────────────────────────────────
@@ -424,6 +448,30 @@ fun AddTransactionSheet(
 
             Spacer(Modifier.height(8.dp))
 
+            // ── Location indicator ────────────────────────────────────────
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 16.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.LocationOn,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(12.dp)
+                        .padding(end = 0.dp),
+                    tint = if (capturedLocation != null) ColorInk else ColorTextTertiary,
+                )
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    text = if (capturedLocation != null) "Location captured" else "No location",
+                    style = TextStyle(
+                        fontFamily = SansFamily,
+                        fontSize = 11.sp,
+                        color = if (capturedLocation != null) ColorInk else ColorTextTertiary,
+                    ),
+                )
+            }
+
             // ── Add button ────────────────────────────────────────────────
             Button(
                 onClick = {
@@ -440,6 +488,8 @@ fun AddTransactionSheet(
                         icon               = CATEGORIES[actualCategory]?.icon ?: "circle",
                         account            = accounts.getOrNull(accountIdx % accounts.size)?.name ?: "",
                         recordedEpochDay   = LocalDate.now().toEpochDay(),
+                        lat                = capturedLocation?.latitude,
+                        lng                = capturedLocation?.longitude,
                     )
                     onAdd(tx)
                 },
@@ -461,6 +511,14 @@ fun AddTransactionSheet(
             }
         }
     }
+}
+
+private fun getBestLastLocation(context: Context): Location? {
+    val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    return try {
+        lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+            ?: lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+    } catch (_: SecurityException) { null }
 }
 
 // ── Shared form primitives ─────────────────────────────────────────────────

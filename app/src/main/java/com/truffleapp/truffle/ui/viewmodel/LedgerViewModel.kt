@@ -17,6 +17,8 @@ import com.truffleapp.truffle.data.canCoverExpense
 import com.truffleapp.truffle.data.UNASSIGNED_ACCOUNT_LABEL
 import com.truffleapp.truffle.data.normalizeLedgerCurrencyCode
 import com.truffleapp.truffle.data.db.LedgerRepository
+import com.truffleapp.truffle.reminders.BillReminderNotifications
+import com.truffleapp.truffle.reminders.BillReminderScheduler
 
 class LedgerViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -34,6 +36,7 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
         repo.completeOnboarding(name, account)
         hasOnboarded = true
         data         = repo.loadLedgerData()
+        syncBillReminderWork()
     }
 
     fun setDisplayCurrency(code: String) {
@@ -73,6 +76,7 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
         if (result is ImportBackupResult.Success) {
             hasOnboarded = repo.readHasOnboarded()
             data         = repo.loadLedgerData()
+            syncBillReminderWork()
         }
         return result
     }
@@ -81,6 +85,8 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
         repo.clearAllDataAndResetOnboarding()
         hasOnboarded = repo.readHasOnboarded()
         data         = repo.loadLedgerData()
+        BillReminderNotifications.cancelSummary(getApplication())
+        syncBillReminderWork()
     }
 
     fun deleteAccount(accountId: String) {
@@ -141,6 +147,7 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
 
     fun addBill(bill: Bill) {
         data = repo.persist(data.copy(bills = data.bills + bill))
+        syncBillReminderWork()
     }
 
     /** Marks the bill paid and posts its amount from the linked account when one is set. */
@@ -165,6 +172,7 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
                 },
             ),
         )
+        syncBillReminderWork()
         return true
     }
 
@@ -203,6 +211,10 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
                 },
             ),
         )
+    }
+
+    private fun syncBillReminderWork() {
+        BillReminderScheduler.schedule(getApplication())
     }
 
     private fun List<Account>.adjustBalanceForAccountNamed(accountName: String, delta: Double): List<Account> {

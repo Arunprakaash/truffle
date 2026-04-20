@@ -59,6 +59,8 @@ fun AccountsScreen(
     onImportBackup: () -> Unit = {},
     onRequestClearAllData: () -> Unit = {},
     onDisplayCurrencyChange: (String) -> Unit = {},
+    billRemindersEnabled: Boolean = false,
+    onBillRemindersChange: (Boolean) -> Unit = {},
 ) {
     val cash    = remember(data) { data.accounts.filter { it.kind == AccountKind.Cash } }
     val invest  = remember(data) { data.accounts.filter { it.kind == AccountKind.Invest } }
@@ -105,6 +107,8 @@ fun AccountsScreen(
                 AccountBackupSheet(
                     displayCurrency         = data.displayCurrency,
                     onDisplayCurrencyChange = onDisplayCurrencyChange,
+                    billRemindersEnabled    = billRemindersEnabled,
+                    onBillRemindersChange   = onBillRemindersChange,
                     onDismiss               = { showBackupSheet = false },
                     onImport                = onImportBackup,
                     onExport                = onExportBackup,

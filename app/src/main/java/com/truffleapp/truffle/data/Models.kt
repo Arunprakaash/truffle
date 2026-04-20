@@ -21,6 +21,8 @@ data class Transaction(
     val account: String,
     /** For date-range filters (Flow). `0` = legacy / preview data — always included in every range. */
     val recordedEpochDay: Long = 0L,
+    val lat: Double? = null,
+    val lng: Double? = null,
 )
 
 enum class BillRecurrence {

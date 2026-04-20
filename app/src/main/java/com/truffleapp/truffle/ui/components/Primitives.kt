@@ -5,6 +5,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,8 +17,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.remember
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material.icons.automirrored.outlined.TrendingUp
 import androidx.compose.material.icons.outlined.AccountBalance
 import androidx.compose.material.icons.outlined.ArrowUpward
 import androidx.compose.material.icons.outlined.CardGiftcard
@@ -25,10 +30,8 @@ import androidx.compose.material.icons.outlined.CreditCard
 import androidx.compose.material.icons.outlined.DirectionsCar
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.LocalCafe
-import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.outlined.Spa
-import androidx.compose.material.icons.outlined.TrendingUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,6 +56,8 @@ import com.truffleapp.truffle.ui.theme.ColorBorderTertiary
 import com.truffleapp.truffle.ui.theme.ColorFeature2
 import com.truffleapp.truffle.ui.theme.ColorInk
 import com.truffleapp.truffle.ui.theme.ColorMuted
+import com.truffleapp.truffle.ui.theme.ColorPage
+import com.truffleapp.truffle.ui.theme.ColorSurface
 import com.truffleapp.truffle.ui.theme.ColorTextSecondary
 import com.truffleapp.truffle.ui.theme.ColorTextTertiary
 import com.truffleapp.truffle.ui.theme.SansFamily
@@ -170,7 +175,7 @@ fun categoryIcon(key: String): ImageVector = when (key) {
     "cart"            -> Icons.Outlined.ShoppingCart
     "home", "home2"   -> Icons.Outlined.Home
     "car"             -> Icons.Outlined.DirectionsCar
-    "book"            -> Icons.Outlined.MenuBook
+    "book"            -> Icons.AutoMirrored.Outlined.MenuBook
     "gift"            -> Icons.Outlined.CardGiftcard
     "tree"            -> Icons.Outlined.Spa
     "arrowUp"         -> Icons.Outlined.ArrowUpward
@@ -180,7 +185,7 @@ fun categoryIcon(key: String): ImageVector = when (key) {
 
 fun accountIcon(kind: AccountKind): ImageVector = when (kind) {
     AccountKind.Cash   -> Icons.Outlined.AccountBalance
-    AccountKind.Invest -> Icons.Outlined.TrendingUp
+    AccountKind.Invest -> Icons.AutoMirrored.Outlined.TrendingUp
     AccountKind.Credit -> Icons.Outlined.CreditCard
 }
 
@@ -231,6 +236,68 @@ fun RingProgress(
                 topLeft    = topLeft,
                 size       = arcSize,
                 style      = Stroke(width = stroke, cap = StrokeCap.Round),
+            )
+        }
+    }
+}
+
+// ── SheetButton ───────────────────────────────────────────────────────────
+// Full-width tappable button for bottom sheets. No ripple, no Material chrome.
+// Ghost: surface card bg + ink text (neutral actions).
+// Destructive: transparent bg + tertiary text (remove / delete actions).
+// Primary: ink bg + page text (submit / confirm actions).
+enum class SheetButtonVariant { Primary, Ghost, Destructive }
+
+@Composable
+fun SheetButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    variant: SheetButtonVariant = SheetButtonVariant.Ghost,
+    icon: ImageVector? = null,
+) {
+    val bg = when (variant) {
+        SheetButtonVariant.Primary     -> ColorInk
+        SheetButtonVariant.Ghost       -> ColorSurface
+        SheetButtonVariant.Destructive -> ColorFeature2
+    }
+    val fg = when (variant) {
+        SheetButtonVariant.Primary     -> ColorPage
+        SheetButtonVariant.Ghost       -> ColorInk
+        SheetButtonVariant.Destructive -> ColorTextSecondary
+    }
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(bg)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick,
+            )
+            .padding(vertical = 16.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(end = 6.dp)
+                        .size(14.dp),
+                    tint = fg,
+                )
+            }
+            Text(
+                text = text,
+                style = TextStyle(
+                    fontFamily = SansFamily,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 13.sp,
+                    color = fg,
+                ),
             )
         }
     }

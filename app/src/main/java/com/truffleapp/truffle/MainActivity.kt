@@ -1,7 +1,9 @@
 package com.truffleapp.truffle
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
@@ -36,6 +38,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truffleapp.truffle.data.Account
@@ -50,6 +53,8 @@ import com.truffleapp.truffle.data.Transaction
 import com.truffleapp.truffle.data.currencyForAccountName
 import com.truffleapp.truffle.data.primaryAmountCurrency
 import com.truffleapp.truffle.navigation.NavDestination
+import com.truffleapp.truffle.reminders.BillReminderPrefs
+import com.truffleapp.truffle.reminders.BillReminderScheduler
 import com.truffleapp.truffle.ui.components.AddToGoalSheet
 import com.truffleapp.truffle.ui.components.BudgetConfigSheet
 import com.truffleapp.truffle.ui.components.AddTransactionSheet
@@ -129,6 +134,29 @@ private fun LedgerApp() {
 
     val appContext = LocalContext.current
     val scope = rememberCoroutineScope()
+
+    var billRemindersEnabled by remember {
+        mutableStateOf(BillReminderPrefs.isEnabled(appContext))
+    }
+
+    val postNotificationsLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { granted ->
+            if (granted) {
+                BillReminderPrefs.setEnabled(appContext, true)
+                BillReminderScheduler.schedule(appContext)
+                billRemindersEnabled = true
+            } else {
+                Toast.makeText(
+                    appContext,
+                    "Allow notifications in Settings to get bill reminders.",
+                    Toast.LENGTH_LONG,
+                ).show()
+                billRemindersEnabled = false
+            }
+        },
+    )
+
     val importBackupLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
         onResult = { uri: Uri? ->
@@ -191,6 +219,26 @@ private fun LedgerApp() {
                 onImportBackup          = { importBackupLauncher.launch("*/*") },
                 onRequestClearAllData   = { showClearAllConfirm = true },
                 onDisplayCurrencyChange = { viewModel.setDisplayCurrency(it) },
+                billRemindersEnabled    = billRemindersEnabled,
+                onBillRemindersChange   = { wantOn ->
+                    if (wantOn) {
+                        val ok = ContextCompat.checkSelfPermission(
+                            appContext,
+                            Manifest.permission.POST_NOTIFICATIONS,
+                        ) == PackageManager.PERMISSION_GRANTED
+                        if (ok) {
+                            BillReminderPrefs.setEnabled(appContext, true)
+                            BillReminderScheduler.schedule(appContext)
+                            billRemindersEnabled = true
+                        } else {
+                            postNotificationsLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        }
+                    } else {
+                        BillReminderPrefs.setEnabled(appContext, false)
+                        BillReminderScheduler.cancel(appContext)
+                        billRemindersEnabled = false
+                    }
+                },
             )
             NavDestination.Flow     -> FlowScreen(data = data, onTx = { selectedTx = it })
             NavDestination.Goals    -> GoalsScreen(data = data, onAddToGoal = { selectedGoal = it })

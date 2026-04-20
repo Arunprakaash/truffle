@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">truffle</string>
+    <string name="bill_reminders_channel_name">Bills</string>
+    <string name="bill_reminders_channel_desc">Upcoming and overdue bills from your ledger.</string>
+    <string name="bill_reminders_title">Bills to tend to</string>
+    <string name="bill_reminders_none">No bills in the next few days.</string>
+    <string name="bill_reminders_more">+%d more</string>
+    <string name="bill_reminders_switch_title">Bill reminders</string>
+    <string name="bill_reminders_switch_note">Daily summary for bills due soon or recently overdue.</string>
 </resources>

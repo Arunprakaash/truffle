@@ -42,6 +42,8 @@ data class TransactionEntity(
     val icon: String,
     val account: String,
     @ColumnInfo(name = "recorded_epoch_day") val recordedEpochDay: Long,
+    val lat: Double? = null,
+    val lng: Double? = null,
 )
 
 @Entity(tableName = "bills")

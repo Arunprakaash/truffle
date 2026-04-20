@@ -299,6 +299,8 @@ class LedgerRepository(application: Application) {
         put("icon", t.icon)
         put("account", t.account)
         put("recordedEpochDay", t.recordedEpochDay)
+        if (t.lat != null) put("lat", t.lat)
+        if (t.lng != null) put("lng", t.lng)
     }
 
     private fun billEntityToJson(b: BillEntity) = JSONObject().apply {
@@ -413,6 +415,8 @@ private fun JSONObject.toTransactionEntity(): TransactionEntity = TransactionEnt
     icon             = getString("icon"),
     account          = getString("account"),
     recordedEpochDay = optLong("recordedEpochDay", 0L),
+    lat              = if (has("lat") && !isNull("lat")) getDouble("lat") else null,
+    lng              = if (has("lng") && !isNull("lng")) getDouble("lng") else null,
 )
 
 private fun JSONObject.toBillEntity(): BillEntity {
@@ -520,6 +524,8 @@ private fun TransactionEntity.toDomain() = Transaction(
     icon              = icon,
     account           = account,
     recordedEpochDay  = recordedEpochDay,
+    lat               = lat,
+    lng               = lng,
 )
 
 private fun Transaction.toEntity() = TransactionEntity(
@@ -533,6 +539,8 @@ private fun Transaction.toEntity() = TransactionEntity(
     icon              = icon,
     account           = account,
     recordedEpochDay  = recordedEpochDay,
+    lat               = lat,
+    lng               = lng,
 )
 
 private fun BillEntity.toDomain() = Bill(

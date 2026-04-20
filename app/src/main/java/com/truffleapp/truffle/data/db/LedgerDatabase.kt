@@ -17,7 +17,7 @@ import java.time.LocalDate
         GoalEntity::class,
         BudgetEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = false,
 )
 abstract class LedgerDatabase : RoomDatabase() {
@@ -36,7 +36,7 @@ abstract class LedgerDatabase : RoomDatabase() {
                     "truffle_ledger.db",
                 )
                     .allowMainThreadQueries()
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                     .build()
                     .also { instance = it }
             }
@@ -103,6 +103,13 @@ abstract class LedgerDatabase : RoomDatabase() {
                 db.execSQL(
                     "ALTER TABLE accounts ADD COLUMN credit_limit REAL NOT NULL DEFAULT 0",
                 )
+            }
+        }
+
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE transactions ADD COLUMN lat REAL")
+                db.execSQL("ALTER TABLE transactions ADD COLUMN lng REAL")
             }
         }
     }
