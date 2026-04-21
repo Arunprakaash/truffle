@@ -47,7 +47,17 @@ suspend fun recognizeSpeech(context: Context): String =
             }
             override fun onError(error: Int) {
                 recognizer.destroy()
-                cont.resumeWithException(RuntimeException("SpeechRecognizer error $error"))
+                val msg = when (error) {
+                    SpeechRecognizer.ERROR_NO_MATCH          -> "Couldn't understand — please try again"
+                    SpeechRecognizer.ERROR_SPEECH_TIMEOUT    -> "No speech detected — tap mic and speak"
+                    SpeechRecognizer.ERROR_AUDIO             -> "Microphone error — check permissions"
+                    SpeechRecognizer.ERROR_RECOGNIZER_BUSY   -> "Recognizer busy — try again"
+                    SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Microphone permission needed"
+                    SpeechRecognizer.ERROR_NETWORK,
+                    SpeechRecognizer.ERROR_NETWORK_TIMEOUT   -> "Network error — check connection"
+                    else                                     -> "Speech error ($error) — try again"
+                }
+                cont.resumeWithException(RuntimeException(msg))
             }
             override fun onReadyForSpeech(p: Bundle?) = Unit
             override fun onBeginningOfSpeech()        = Unit

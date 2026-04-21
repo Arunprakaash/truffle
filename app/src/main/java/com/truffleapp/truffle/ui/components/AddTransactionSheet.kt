@@ -155,7 +155,7 @@ fun AddTransactionSheet(
                 applyVoiceResult(text)
             } catch (e: Exception) {
                 isListening = false
-                toast("Could not start mic — ${e.message}")
+                toast(e.message ?: "Mic error — try again")
             }
         }
     }
