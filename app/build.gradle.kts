@@ -20,8 +20,8 @@ android {
         applicationId = "com.truffleapp.truffle"
         minSdk = 33
         targetSdk = 36
-        versionCode = 8
-        versionName = "1.2.2"
+        versionCode = 9
+        versionName = "1.2.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -55,6 +55,11 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
     }
 }
 
@@ -93,6 +98,8 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.coil.compose)
+    implementation(libs.mlkit.entity.extraction)
+    implementation(libs.coroutines.play.services)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

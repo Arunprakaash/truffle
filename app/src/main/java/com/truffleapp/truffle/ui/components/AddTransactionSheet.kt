@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -31,6 +33,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForwardIos
 import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,11 +42,13 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,6 +66,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import android.speech.SpeechRecognizer
+import android.widget.Toast
+import com.truffleapp.truffle.ml.EntityNer
+import com.truffleapp.truffle.ml.TransactionExtractor
+import com.truffleapp.truffle.ml.recognizeSpeech
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.truffleapp.truffle.data.Account
 import com.truffleapp.truffle.data.AccountKind
 import com.truffleapp.truffle.data.canCoverExpense
@@ -99,15 +112,57 @@ fun AddTransactionSheet(
     val focusRequester = remember { FocusRequester() }
     val context = LocalContext.current
     val haptics = rememberHaptics()
+    val scope   = rememberCoroutineScope()
 
-    var amountText       by remember { mutableStateOf("") }
-    var isExpense        by remember { mutableStateOf(true) }
-    var merchant         by remember { mutableStateOf("") }
-    var category         by remember { mutableStateOf("food") }
-    var note             by remember { mutableStateOf("") }
-    var accountIdx       by remember { mutableIntStateOf(0) }
+    var amountText         by remember { mutableStateOf("") }
+    var isExpense          by remember { mutableStateOf(true) }
+    var merchant           by remember { mutableStateOf("") }
+    var category           by remember { mutableStateOf("food") }
+    var note               by remember { mutableStateOf("") }
+    var accountIdx         by remember { mutableIntStateOf(0) }
     var showCategoryPicker by remember { mutableStateOf(false) }
-    var capturedLocation by remember { mutableStateOf<Location?>(null) }
+    var capturedLocation   by remember { mutableStateOf<Location?>(null) }
+    var isListening        by remember { mutableStateOf(false) }
+
+    fun toast(msg: String) = Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+
+    var nerModel by remember { mutableStateOf<EntityNer?>(null) }
+    LaunchedEffect(Unit) { nerModel = EntityNer() }
+    DisposableEffect(Unit) { onDispose { nerModel?.close() } }
+
+    val speechAvailable = remember { SpeechRecognizer.isRecognitionAvailable(context) }
+
+    fun applyVoiceResult(raw: String) {
+        scope.launch {
+            isListening = false
+            if (raw.isBlank()) { toast("Couldn't hear anything — try again"); return@launch }
+            val spans  = withContext(Dispatchers.IO) { nerModel?.predict(raw) ?: emptyList() }
+            val result = TransactionExtractor.extract(spans, raw)
+            result.merchant?.let { merchant = it }
+            result.amount?.let   { amountText = it.toBigDecimal().stripTrailingZeros().toPlainString() }
+            result.note?.let     { note = it }
+            haptics.click()
+        }
+    }
+
+    fun startVoice() {
+        if (!speechAvailable) { toast("Speech recognition not available on this device"); return }
+        scope.launch {
+            isListening = true
+            haptics.tick()
+            try {
+                val text = recognizeSpeech(context)
+                applyVoiceResult(text)
+            } catch (e: Exception) {
+                isListening = false
+                toast("Could not start mic — ${e.message}")
+            }
+        }
+    }
+
+    val micPermLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted -> if (granted) startVoice() else toast("Microphone permission denied") }
 
     val ledgerDc = normalizeLedgerCurrencyCode(displayCurrency)
     val amountRowCurrency = remember(ledgerDc, accountIdx, accounts) {
@@ -146,15 +201,35 @@ fun AddTransactionSheet(
                 .padding(top = 20.dp, bottom = 32.dp)
                 .navigationBarsPadding(),
         ) {
-            // Drag handle
-            Spacer(
-                modifier = Modifier
-                    .width(36.dp)
-                    .height(4.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(ColorBorderTertiary)
-                    .align(Alignment.CenterHorizontally),
-            )
+            // Drag handle + mic button row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Spacer(Modifier.weight(1f))
+                Spacer(
+                    modifier = Modifier
+                        .width(36.dp)
+                        .height(4.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(ColorBorderTertiary),
+                )
+                Spacer(Modifier.weight(1f))
+                SurfaceCircleIconButton(
+                    imageVector = Icons.Outlined.Mic,
+                    contentDescription = "Voice input",
+                    onClick = {
+                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO)
+                            == PackageManager.PERMISSION_GRANTED
+                        ) startVoice()
+                        else micPermLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                    },
+                    containerColor = if (isListening) ColorInk else ColorSurface,
+                    iconTint       = if (isListening) ColorPage else ColorTextTertiary,
+                    size    = 30.dp,
+                    iconSize = 14.dp,
+                )
+            }
 
             Spacer(Modifier.height(20.dp))
 
