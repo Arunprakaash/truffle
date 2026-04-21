@@ -21,3 +21,7 @@
 
 # WorkManager lists worker implementations by name.
 -keep class com.truffleapp.truffle.reminders.BillReminderWorker { *; }
+
+# ML Kit Entity Extraction loads its implementation classes by name at runtime.
+-keep class com.google.mlkit.** { *; }
+-keep class com.google.android.gms.internal.mlkit_entity_extraction.** { *; }

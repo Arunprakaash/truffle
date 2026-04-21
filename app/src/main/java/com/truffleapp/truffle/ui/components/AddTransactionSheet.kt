@@ -127,7 +127,7 @@ fun AddTransactionSheet(
     fun toast(msg: String) = Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
 
     var nerModel by remember { mutableStateOf<EntityNer?>(null) }
-    LaunchedEffect(Unit) { nerModel = EntityNer() }
+    LaunchedEffect(Unit) { try { nerModel = EntityNer() } catch (_: Exception) { } }
     DisposableEffect(Unit) { onDispose { nerModel?.close() } }
 
     val speechAvailable = remember { SpeechRecognizer.isRecognitionAvailable(context) }
@@ -564,7 +564,7 @@ private fun getBestLastLocation(context: Context): Location? {
     return try {
         lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)
             ?: lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-    } catch (_: SecurityException) { null }
+    } catch (_: Exception) { null }
 }
 
 // ── Shared form primitives ─────────────────────────────────────────────────
