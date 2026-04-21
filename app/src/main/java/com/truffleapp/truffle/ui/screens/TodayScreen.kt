@@ -35,6 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import com.truffleapp.truffle.data.BillSuggestion
 import com.truffleapp.truffle.data.LedgerData
 import com.truffleapp.truffle.data.SampleData
 import com.truffleapp.truffle.data.ledgerWithDerivedBudgetsAndWeekly
@@ -87,10 +88,13 @@ private fun nearlyZero(value: Double) = kotlin.math.abs(value) < 0.005
 fun TodayScreen(
     data: LedgerData,
     modifier: Modifier = Modifier,
+    suggestions: List<BillSuggestion> = emptyList(),
     onTx: (Transaction) -> Unit = {},
     onBill: (Bill) -> Unit = {},
     onNav: (NavDestination) -> Unit = {},
     onAdd: () -> Unit = {},
+    onAcceptSuggestion: (BillSuggestion) -> Unit = {},
+    onDismissSuggestion: (String) -> Unit = {},
 ) {
     val topTx      = remember(data) { data.transactions.take(4) }
     val upcoming   = remember(data) {
@@ -131,10 +135,10 @@ fun TodayScreen(
 
         Spacer(Modifier.height(14.dp))
 
-        if (data.accounts.isNotEmpty() && data.transactions.isEmpty()) {
-            DayOneAcknowledgment(data = data)
-            Spacer(Modifier.height(14.dp))
-        }
+//        if (data.accounts.isNotEmpty() && data.transactions.isEmpty()) {
+//            DayOneAcknowledgment(data = data)
+//            Spacer(Modifier.height(14.dp))
+//        }
 
         // ── Net worth feature card ─────────────────────────────────────────
         NetWorthCard(data = data)
@@ -177,6 +181,18 @@ fun TodayScreen(
             title = "Coming up",
             modifier = Modifier.padding(bottom = 8.dp),
         )
+
+        // Bill suggestions
+        suggestions.forEach { suggestion ->
+            BillSuggestionCard(
+                suggestion   = suggestion,
+                currencyCode = data.primaryAmountCurrency(),
+                onAccept     = { onAcceptSuggestion(suggestion) },
+                onDismiss    = { onDismissSuggestion(suggestion.key) },
+                modifier     = Modifier.padding(bottom = 8.dp),
+            )
+        }
+
         ListCard(padding = 6) {
             if (upcoming.isEmpty()) {
                 EmptyListHint(text = "No bills coming up. They will land here when you add them.")
@@ -343,9 +359,9 @@ private fun ThisMonthSection(data: LedgerData, modifier: Modifier = Modifier) {
         if (nearlyZero(data.inflow) && nearlyZero(data.outflow)) {
             Text(
                 text = buildAnnotatedString {
-                    withStyle(SpanStyle(fontFamily = SansFamily)) {
-                        append("No income or spending logged this month yet. ")
-                    }
+//                    withStyle(SpanStyle(fontFamily = SansFamily)) {
+//                        append("No income or spending logged this month yet. ")
+//                    }
                     withStyle(SpanStyle(fontFamily = SerifFamily, fontStyle = FontStyle.Italic)) {
                         append("When you add transactions, this will fill in.")
                     }
@@ -440,6 +456,62 @@ private fun ListCard(
             .padding(horizontal = 4.dp, vertical = padding.dp),
         content = content,
     )
+}
+
+// ── BillSuggestionCard ────────────────────────────────────────────────────
+@Composable
+private fun BillSuggestionCard(
+    suggestion: BillSuggestion,
+    currencyCode: String,
+    onAccept: () -> Unit,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(CardShape)
+            .background(ColorSurface)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+    ) {
+        Text(
+            text = "Looks like you pay ${suggestion.merchant} " +
+                "${fmt(suggestion.amount, currencyCode = currencyCode, cents = false)} every month.",
+            style = TextStyle(
+                fontFamily = SerifFamily,
+                fontStyle  = FontStyle.Italic,
+                fontSize   = 15.sp,
+                color      = ColorTextSerifBody,
+                lineHeight = (15 * 1.55).sp,
+            ),
+        )
+        Spacer(Modifier.height(12.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            androidx.compose.material3.TextButton(
+                onClick = onDismiss,
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 0.dp, vertical = 0.dp),
+            ) {
+                Text(
+                    text = "Dismiss",
+                    style = TextStyle(fontFamily = SansFamily, fontSize = 12.sp, color = ColorTextTertiary),
+                )
+            }
+            androidx.compose.material3.Button(
+                onClick = onAccept,
+                shape = RoundedCornerShape(6.dp),
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = ColorInk,
+                    contentColor   = com.truffleapp.truffle.ui.theme.ColorPage,
+                ),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+            ) {
+                Text(
+                    text = "Add as bill",
+                    style = TextStyle(fontFamily = SansFamily, fontSize = 12.sp),
+                )
+            }
+        }
+    }
 }
 
 // ── Preview ───────────────────────────────────────────────────────────────

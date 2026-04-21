@@ -64,6 +64,45 @@ fun weeklyFlowFromTransactions(transactions: List<Transaction>): List<WeeklyFlow
     }
 }
 
+/**
+ * Scans expense transactions for monthly recurring patterns and suggests bills.
+ * A suggestion is raised when the same merchant appears ≥2 times with ~30-day
+ * intervals (25–35 days) and amounts within ±10% of each other.
+ */
+fun detectRecurringBills(
+    transactions: List<Transaction>,
+    existingBills: List<Bill>,
+    dismissed: Set<String> = emptySet(),
+): List<BillSuggestion> {
+    val today         = LocalDate.now().toEpochDay()
+    val existingKeys  = existingBills.map { it.label.trim().lowercase() }.toSet()
+
+    return transactions
+        .filter { it.amount < 0.0 && it.recordedEpochDay > 0L }
+        .groupBy { it.merchant.trim().lowercase() }
+        .filterKeys { it !in existingKeys && it !in dismissed && it.isNotBlank() }
+        .mapNotNull { (_, txs) ->
+            if (txs.size < 2) return@mapNotNull null
+            val sorted    = txs.sortedBy { it.recordedEpochDay }
+            val intervals = sorted.zipWithNext { a, b -> b.recordedEpochDay - a.recordedEpochDay }
+            val avgInterval = intervals.average()
+            if (avgInterval !in 25.0..35.0) return@mapNotNull null
+            if (intervals.any { it < 20 || it > 40 }) return@mapNotNull null
+            val amounts   = sorted.map { -it.amount }
+            val avgAmount = amounts.average()
+            if (amounts.any { kotlin.math.abs(it - avgAmount) / avgAmount > 0.10 }) return@mapNotNull null
+            val nextDue   = sorted.last().recordedEpochDay + avgInterval.toLong()
+            if (nextDue < today - 7) return@mapNotNull null
+            BillSuggestion(
+                merchant        = sorted.last().merchant.trim(),
+                amount          = avgAmount,
+                nextDueDateEpoch = nextDue,
+                account         = sorted.last().account,
+            )
+        }
+        .sortedByDescending { it.nextDueDateEpoch }
+}
+
 fun ledgerWithDerivedBudgetsAndWeekly(ledger: LedgerData): LedgerData =
     ledger.copy(
         budgets    = budgetsWithSpentFromTransactions(ledger.budgets, ledger.transactions),

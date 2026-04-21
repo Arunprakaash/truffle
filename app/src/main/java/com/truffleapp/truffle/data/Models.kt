@@ -164,6 +164,15 @@ data class WeeklyFlow(val week: String, val inflow: Double, val outflow: Double)
     val net: Double get() = inflow - outflow
 }
 
+data class BillSuggestion(
+    val merchant: String,
+    val amount: Double,
+    val nextDueDateEpoch: Long,
+    val account: String,
+) {
+    val key: String get() = merchant.trim().lowercase()
+}
+
 data class LedgerData(
     val user: User,
     val netWorth: Double,

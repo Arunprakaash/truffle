@@ -14,6 +14,8 @@ import com.truffleapp.truffle.data.BackupImportPreview
 import com.truffleapp.truffle.data.ImportBackupResult
 import com.truffleapp.truffle.data.Transaction
 import com.truffleapp.truffle.data.canCoverExpense
+import com.truffleapp.truffle.data.BillSuggestion
+import com.truffleapp.truffle.data.detectRecurringBills
 import com.truffleapp.truffle.data.UNASSIGNED_ACCOUNT_LABEL
 import com.truffleapp.truffle.data.normalizeLedgerCurrencyCode
 import com.truffleapp.truffle.data.db.LedgerRepository
@@ -29,6 +31,15 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
 
     var data by mutableStateOf(repo.loadLedgerData())
         private set
+
+    private var dismissedSuggestions by mutableStateOf(emptySet<String>())
+
+    val billSuggestions: List<BillSuggestion>
+        get() = detectRecurringBills(data.transactions, data.bills, dismissedSuggestions)
+
+    fun dismissBillSuggestion(key: String) {
+        dismissedSuggestions = dismissedSuggestions + key
+    }
 
     // ── Onboarding ─────────────────────────────────────────────────────────
 

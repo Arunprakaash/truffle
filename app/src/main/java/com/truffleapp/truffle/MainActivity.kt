@@ -206,10 +206,26 @@ private fun LedgerApp() {
         when (currentDestination) {
             NavDestination.Today -> TodayScreen(
                 data                 = data,
+                suggestions          = viewModel.billSuggestions,
                 onTx                 = { selectedTx = it },
                 onBill               = { selectedBill = it },
                 onNav                = { currentDestination = it },
                 onAdd                = { showAddPicker = true },
+                onAcceptSuggestion   = { s ->
+                    viewModel.addBill(
+                        Bill(
+                            id           = java.util.UUID.randomUUID().toString(),
+                            label        = s.merchant,
+                            amount       = s.amount,
+                            dueDateEpoch = s.nextDueDateEpoch,
+                            paid         = false,
+                            account      = s.account,
+                            recurrence   = com.truffleapp.truffle.data.BillRecurrence.Monthly,
+                        )
+                    )
+                    viewModel.dismissBillSuggestion(s.key)
+                },
+                onDismissSuggestion  = { key -> viewModel.dismissBillSuggestion(key) },
             )
             NavDestination.Accounts -> AccountsScreen(
                 data                    = data,

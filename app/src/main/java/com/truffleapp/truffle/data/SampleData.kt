@@ -46,6 +46,9 @@ val SampleData = LedgerData(
         Transaction("t10", "Thursday",  "4:55 pm",  "Uber",              "Home in the rain",       -18.40,  "trans",    "car",      "Sapphire",      SAMPLE_TX_ANCHOR - 25),
         Transaction("t11", "Thursday",  "12:08 pm", "Sweetgreen",        "Lunch at desk",          -14.25,  "food",     "coffee",   "Sapphire",      SAMPLE_TX_ANCHOR - 25),
         Transaction("t12", "Wednesday", "7:01 am",  "Dividend",          "VTI, quarterly",          64.12,  "income",   "arrowUp",  "Brokerage",     SAMPLE_TX_ANCHOR - 33),
+        // Recurring Netflix — triggers bill suggestion (2 hits, ~30-day gap, consistent amount)
+        Transaction("t13", "—",        "—",        "Netflix",           "Monthly plan",           -15.49,  "wellness", "tree",     "Sapphire",      SAMPLE_TX_ANCHOR - 12),
+        Transaction("t14", "—",        "—",        "Netflix",           "Monthly plan",           -15.49,  "wellness", "tree",     "Sapphire",      SAMPLE_TX_ANCHOR - 42),
     ),
 
     bills = listOf(

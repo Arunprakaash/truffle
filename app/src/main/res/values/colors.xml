@@ -14,6 +14,9 @@
     <color name="color_text_quaternary">#B5A898</color>
     <color name="color_muted">#8C8070</color>
 
+    <!-- Launcher icon -->
+    <color name="ic_launcher_bg">#FEF8EE</color>
+
     <!-- Borders -->
     <color name="color_border_primary">#D4C9BA</color>
     <color name="color_border_secondary">#D8D0C3</color>
