@@ -50,6 +50,7 @@ import com.truffleapp.truffle.ui.components.MoneyText
 import com.truffleapp.truffle.ui.components.ScreenTopBar
 import com.truffleapp.truffle.ui.components.TxRow
 import com.truffleapp.truffle.ui.components.fmt
+import com.truffleapp.truffle.ui.components.rememberHaptics
 import com.truffleapp.truffle.ui.theme.ColorFeature2
 import com.truffleapp.truffle.ui.theme.ColorSurface
 import com.truffleapp.truffle.ui.theme.ColorTextPrimary
@@ -262,6 +263,7 @@ private fun RangeSelector(
     modifier: Modifier = Modifier,
 ) {
     val options = listOf("week" to "Week", "month" to "Month", "year" to "Year")
+    val haptic = rememberHaptics()
 
     Row(
         modifier = modifier
@@ -286,7 +288,7 @@ private fun RangeSelector(
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication        = null,
-                        onClick           = { onSelect(value) },
+                        onClick           = { haptic.tick(); onSelect(value) },
                     )
                     .padding(vertical = 8.dp),
                 contentAlignment = Alignment.Center,
@@ -313,6 +315,7 @@ private fun FilterChip(
     isActive: Boolean,
     onClick: () -> Unit,
 ) {
+    val haptic = rememberHaptics()
     val color by animateColorAsState(
         targetValue   = if (isActive) ColorTextPrimary else ColorTextTertiary,
         animationSpec = tween(320),
@@ -326,7 +329,7 @@ private fun FilterChip(
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication        = null,
-                onClick           = onClick,
+                onClick           = { haptic.tick(); onClick() },
             )
             .padding(horizontal = 12.dp, vertical = 6.dp),
     ) {
