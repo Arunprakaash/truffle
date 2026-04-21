@@ -201,20 +201,23 @@ fun AddTransactionSheet(
                 .padding(top = 20.dp, bottom = 32.dp)
                 .navigationBarsPadding(),
         ) {
-            // Drag handle + mic button row
+            // Centered drag handle
+            Spacer(
+                modifier = Modifier
+                    .width(36.dp)
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(ColorBorderTertiary)
+                    .align(Alignment.CenterHorizontally),
+            )
+
+            Spacer(Modifier.height(20.dp))
+
+            // Mic button right-aligned, mirroring the close button pattern in other sheets
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End,
             ) {
-                Spacer(Modifier.weight(1f))
-                Spacer(
-                    modifier = Modifier
-                        .width(36.dp)
-                        .height(4.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(ColorBorderTertiary),
-                )
-                Spacer(Modifier.weight(1f))
                 SurfaceCircleIconButton(
                     imageVector = Icons.Outlined.Mic,
                     contentDescription = "Voice input",
