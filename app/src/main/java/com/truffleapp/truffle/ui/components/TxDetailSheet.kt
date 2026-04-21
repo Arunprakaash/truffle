@@ -285,17 +285,19 @@ fun TxDetailSheet(
                     ColorMatrix().apply { setToSaturation(0f) }
                 }
 
-                BoxWithConstraints(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(132.dp)
-                        .clip(RoundedCornerShape(14.dp)),
-                ) {
-                    // Fill full width with 3 tiles; height can crop top/bottom for a compact strip.
+                BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
                     val tileSize = maxWidth / 3
 
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        // 3×3 tile grid — centre tile contains the location.
+                    // Container is exactly one tile tall so the centre row fills it perfectly.
+                    // Rounded corners only clip the tile corners, never the map content itself.
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(tileSize)
+                            .clip(RoundedCornerShape(14.dp)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        // 3×3 tile grid — overflow top/bottom, clipped to one tile height.
                         Column {
                             for (dy in -1..1) {
                                 Row {
@@ -307,7 +309,7 @@ fun TxDetailSheet(
                                                 .crossfade(false)
                                                 .build(),
                                             contentDescription = null,
-                                            contentScale = ContentScale.FillBounds,
+                                            contentScale = ContentScale.Crop,
                                             colorFilter = ColorFilter.colorMatrix(mapTone),
                                             alpha = 0.86f,
                                             modifier = Modifier.size(tileSize),
@@ -450,8 +452,6 @@ private fun DetailRow(
     Hairline()
 }
 
-private fun merchantKey(merchant: String): String = merchant.trim().lowercase()
-
 private fun transactionCalendarMonth(tx: Transaction): YearMonth? =
     if (tx.recordedEpochDay > 0L) YearMonth.from(LocalDate.ofEpochDay(tx.recordedEpochDay))
     else null
@@ -460,15 +460,16 @@ private fun monthHeading(ym: YearMonth): String =
     ym.format(DateTimeFormatter.ofPattern("MMMM yyyy"))
 
 private fun detailSheetNote(tx: Transaction, transactions: List<Transaction>, currencyCode: String): String {
-    val key = merchantKey(tx.merchant)
     val ym = transactionCalendarMonth(tx)
+    val catLabel = CATEGORIES[tx.category]?.label ?: tx.category
+
     if (tx.amount < 0.0) {
         if (ym == null) {
-            return "This expense was ${fmt(-tx.amount, currencyCode = currencyCode, cents = true)} at ${tx.merchant}."
+            return "This ${fmt(-tx.amount, currencyCode = currencyCode, cents = true)} went to $catLabel."
         }
         val monthTxs = transactions.filter { t ->
             t.amount < 0.0 &&
-                merchantKey(t.merchant) == key &&
+                t.category == tx.category &&
                 t.recordedEpochDay > 0L &&
                 YearMonth.from(LocalDate.ofEpochDay(t.recordedEpochDay)) == ym
         }
@@ -477,28 +478,29 @@ private fun detailSheetNote(tx: Transaction, transactions: List<Transaction>, cu
         val heading = monthHeading(ym)
         return when {
             n <= 1 ->
-                "In $heading, this was ${fmt(-tx.amount, currencyCode = currencyCode, cents = true)} at ${tx.merchant}."
+                "In $heading, this was your only $catLabel spend."
             else ->
-                "In $heading, you spent ${fmt(totalOut, currencyCode = currencyCode, cents = true)} at ${tx.merchant} across $n visits."
+                "In $heading, you spent ${fmt(totalOut, currencyCode = currencyCode, cents = true)} on $catLabel across $n transactions."
         }
     }
+
     if (ym == null) {
-        return "This inflow was ${fmt(tx.amount, currencyCode = currencyCode, cents = true)} from ${tx.merchant}."
+        return "This inflow of ${fmt(tx.amount, currencyCode = currencyCode, cents = true)} came from ${tx.merchant}."
     }
     val monthIn = transactions.filter { t ->
         t.amount > 0.0 &&
-            merchantKey(t.merchant) == key &&
+            t.category == tx.category &&
             t.recordedEpochDay > 0L &&
             YearMonth.from(LocalDate.ofEpochDay(t.recordedEpochDay)) == ym
     }
-    val totalIn = monthIn.sumOf { row -> row.amount }
+    val totalIn = monthIn.sumOf { it.amount }
     val n = monthIn.size
     val heading = monthHeading(ym)
     return when {
         n <= 1 ->
             "In $heading, this was ${fmt(tx.amount, currencyCode = currencyCode, cents = true)} from ${tx.merchant}."
         else ->
-            "In $heading, you received ${fmt(totalIn, currencyCode = currencyCode, cents = true)} from ${tx.merchant} across $n deposits."
+            "In $heading, you received ${fmt(totalIn, currencyCode = currencyCode, cents = true)} across $n deposits."
     }
 }
 
